@@ -3,10 +3,11 @@
 {% block content %}
 
 <h2>Minnesota Legislative Events</h2>
+<br>
 
 	{% for e in events %}
 		
-		<a href='/events/{{e.id}}'>{{e.description}}</a><br>
+		{{e.when[:10]}} @ {{e.when[10:]}} - <a href='/events/{{e.id}}'>{{e.description}}</a><br>
 		<br>
 		
 	{% endfor %}

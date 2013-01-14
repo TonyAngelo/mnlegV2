@@ -2,18 +2,32 @@
 
 {% block content %}
 
-<h2>Current Minnesota State Legislators</h2>
+<h2>Minnesota State Legislators</h2>
 
-{% for l in legislators %}
-	
-	{% if l.chamber=='lower' %}
-	Rep.
-	{% else %}
-	Sen.
-	{% endif %}
-	<a href='/legislators/{{l.id}}'>
-	{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
-	<br>
-{% endfor %}
+<table>
+	<tr><td width='400px'><h3>Senators</h3></td>
+		<td width='400px'><h3>Representatives</h3></td></tr>
+	<tr><td valign="top">
+
+	{% for l in legislators %}
+		
+		{% if l.chamber=='upper' %}
+			Sen. <a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<br>
+		{% endif %}
+	{% endfor %}
+
+	</td><td valign="top">
+
+	{% for l in legislators %}
+		
+		{% if l.chamber=='lower' %}
+			Rep. <a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<br>
+		{% endif %}
+	{% endfor %}
+
+	</td></tr>
+</table>
 
 {% endblock %}

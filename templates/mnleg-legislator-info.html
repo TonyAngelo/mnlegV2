@@ -2,6 +2,8 @@
 
 {% block content %}
 
+<div class='breadcrumb'><a href='/legislators'>legislators</a> > {{legislator.first_name}} {{legislator.last_name}}</div>
+
 <h2>
 	{% if legislator.chamber=='lower' %}
 	Representative 
