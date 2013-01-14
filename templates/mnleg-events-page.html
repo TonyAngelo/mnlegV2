@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Minnesota Legislative Events</h2>
+
+	{% for e in events %}
+		
+		<a href='/events/{{e.id}}'>{{e.description}}</a><br>
+		<br>
+		
+	{% endfor %}
+
+{% endblock %}

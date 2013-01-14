@@ -20,7 +20,7 @@ import os
 import jinja2
 from google.appengine.api import mail
 from utils import check_secure_val,make_secure_val,check_valid_signup,escape_html
-from mnleg import getSessionNames,getBillNames,getBillInfo,getCurrentLegislators,getLegislatorByID,getAllCommittees,getCommitteeById
+from mnleg import getSessionNames,getBillNames,getBillInfo,getCurrentLegislators,getLegislatorByID,getAllCommittees,getCommitteeById,getAllEvents,getEventById
 from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -34,7 +34,11 @@ bill_info_page="mnleg-bill-info.html"
 current_legislators_page="mnleg-current-legislators.html"
 all_committees_page="mnleg-current-committees.html"
 committee_page="mnleg-committee.html"
+all_events_page="mnleg-events-page.html"
+event_page="mnleg-event.html"
 legislator_info_page="mnleg-legislator-info.html"
+all_districts_page="mnleg-districts-page.html"
+district_page="mnleg-district.html"
 signup_page="signup.html"
 login_page="login.html"
 thankyou_page="thankyou.html"
@@ -155,7 +159,43 @@ class CommitteeHandler(GenericHandler):
         else:
             params['committee']=getCommitteeById(com_id)
             self.render(committee_page, **params)
-            #self.write(com_id)
+
+class AllEventsHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('events')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            params['events']=getAllEvents()
+            self.render(all_events_page, **params)
+
+class EventHandler(GenericHandler):
+    def get(self,event_id):
+        params=self.check_login('events/'+event_id)
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            params['event']=getEventById(event_id)
+            self.render(event_page, **params)
+
+class AllDistrictsHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('districts')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            params['districts']=getAllDistricts()
+            self.render(all_districts_page, **params)
+
+class DistrictHandler(GenericHandler):
+    def get(self,district_id):
+        params=self.check_login('districts/'+district_id)
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            #params['district']=getDistrictById(district_id)
+            #self.render(district_page, **params)
+            self.write(district_id)
 
 
 class SignupPage(GenericHandler):
@@ -232,6 +272,10 @@ app = webapp2.WSGIApplication([
     ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
     ('/committees/(MNC[0-9]+)/?', CommitteeHandler),
+    ('/events/?', AllEventsHandler),
+    ('/events/(MNE[0-9]+)/?', EventHandler),
+    ('/districts/?', AllDistrictsHandler),
+    ('/districts/(mn-upper-[0-9]+)|(mn-lower-[0-9]+)/?', DistrictHandler),
     ('/thankyou/?', ThankYouPage),
     ('/signup/?', SignupPage),
     ('/login/?', LoginPage),

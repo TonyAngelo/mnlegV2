@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{event.description}}</h2>
+<br>
+<strong>Location:</strong> {{event.location}}<br><br>
+<strong>When:</strong> {{event.when}}<br><br>
+<strong>Who:</strong>
+{% for p in event.participants %}
+	{{p.participant}}<br>
+{% endfor %}		
+
+{% endblock %}

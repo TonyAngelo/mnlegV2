@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Minnesota Legislative Committees</h2>
+
+<table>
+	<tr><td width='400px'><h3>Senate</h3></td>
+		<td width='400px'><h3>House</h3></td></tr>
+	<tr><td>
+		{% for d in districts %}
+	
+			{% if d.chamber=='upper' %}
+			
+				<a href='/districts/{{d.id}}'>{{d.name}}</a>
+				<br>
+			
+			{% endif %}
+			
+		{% endfor %}
+
+	</td><td>
+		{% for d in districts %}
+			
+			{% if d.chamber=='lower' %}
+			
+				<a href='/committees/{{d.id}}'>{{d.name}}</a>
+				<br>
+			
+			{% endif %}
+			
+		{% endfor %}
+	</td></tr>
+</table>
+
+{% endblock %}

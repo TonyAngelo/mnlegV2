@@ -6,6 +6,25 @@ API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
 apikey_url="apikey="
 
+def getMNLegAllDistricts():
+	#http://openstates.org/api/v1/districts/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
+	url=base_url+'districts/mn/?'+apikey_url+API_KEY
+	return sendGetRequest(url)
+
+def getMNLegDistrictById(district_id):
+	#http://openstates.org/api/v1/districts/boundary/sldu/mn-11/?apikey=4a26c19c3cae4f6c843c3e7816475fae
+	pass
+
+def getMNLegAllEvents():
+	#http://openstates.org/api/v1/events/?state=mn&apikey=4a26c19c3cae4f6c843c3e7816475fae
+	url=base_url+'events/?state=mn&'+apikey_url+API_KEY
+	return sendGetRequest(url)
+
+def getMNLegEventById(event_id):
+	#http://openstates.org/api/v1/events/MNE00000095/?apikey=4a26c19c3cae4f6c843c3e7816475fae
+	url=base_url+'events/'+event_id+'/?'+apikey_url+API_KEY
+	return sendGetRequest(url)
+
 def getMNLegAllCommittees():
 	url=base_url+'committees/?state=mn&'+apikey_url+API_KEY
 	return sendGetRequest(url)
@@ -43,12 +62,52 @@ def sendGetRequest(url):
 	else:
 		return None
 
+def getAllDistricts():
+	data=getFromCache('districts')
+	if not data:
+		data=getMNLegAllDistricts()
+		if data:
+	 		putInCache('districts',data)
+		else:
+			return None
+	return data
+
+def getEventById(district_id):
+	data=getFromCache(district_id)
+	if not data:
+		data=getMNLegDistrictById(district_id)
+		if data:
+	 		putInCache(district_id,data)
+		else:
+			return None
+	return data
+
+def getAllEvents():
+	data=getFromCache('events')
+	if not data:
+		data=getMNLegAllEvents()
+		if data:
+	 		putInCache('events',data)
+		else:
+			return None
+	return data
+
+def getEventById(event_id):
+	data=getFromCache(event_id)
+	if not data:
+		data=getMNLegEventById(event_id)
+		if data:
+	 		putInCache(event_id,data)
+		else:
+			return None
+	return data
+
 def getAllCommittees():
-	data=getFromCache('current committees')
+	data=getFromCache('committees')
 	if not data:
 		data=getMNLegAllCommittees()
 		if data:
-	 		putInCache('current committees',data)
+	 		putInCache('committees',data)
 		else:
 			return None
 	return data
@@ -64,11 +123,11 @@ def getCommitteeById(com_id):
 	return data
 
 def getCurrentLegislators():
-	data=getFromCache('current legislators')
+	data=getFromCache('legislators')
 	if not data:
 		data=getMNLegislatorByActive()
 		if data:
-	 		putInCache('current legislators',data)
+	 		putInCache('legislators',data)
 		else:
 			return None
 	return data
@@ -108,11 +167,11 @@ def getBillNames(session):
 	return bills
 
 def getSessionNames():
-	data=getFromCache("session names")
+	data=getFromCache("sessions")
 	if not data:
 		data=getMNLegMetaData()
 		if data:
-			putInCache("sessions names",data)
+			putInCache("sessions",data)
 		else:
 			return None
 	session_details=data["session_details"]

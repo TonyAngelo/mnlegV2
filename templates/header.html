@@ -1,7 +1,8 @@
 	<div id="top-bar">
 		<div class="upper-login-area">
 	      {% if loggedin_user %}
-	          <div class="upper-login-user">{{loggedin_user}} (<a href="/logout">logout</a>)</div>
+	          <div class="upper-login-user">{{loggedin_user}} (<a href="/logout">logout</a>)
+	          </div>
 	      {% else %}
 	          <div class="upper-login-user"><a href="/login">login</a> | <a href="/signup">signup</a></div>
 	      {% endif %}
@@ -13,7 +14,8 @@
 			<div id="menu-bar">
 			    <a href="/bills">Bills</a> | 
 			    <a href="/legislators">Legislators</a> | 
-			    <a href="/committees">Committees</a>
+			    <a href="/committees">Committees</a> |
+			    <a href="/events">Events</a>
 			</div>
 		{% endif %}
     </div>
