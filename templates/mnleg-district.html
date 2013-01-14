@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class='breadcrumb'><a href='/districts'>districts</a> > {{district.name}}</div>
+
+<h2>{% if district.chamber=='upper' %}
+		Senate district
+	{% else %}
+		House district
+	{% endif %}
+	{{district.name}}
+</h2>
+
+<img src="{{map_img_url}}">
+
+
+{% endblock %}

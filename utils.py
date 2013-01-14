@@ -6,7 +6,10 @@ import cgi
 import re
 import urllib2
 from xml.dom import minidom
+import gpolyencode
 from google.appengine.api import memcache
+
+encoder = gpolyencode.GPolyEncoder()
 
 user_re=re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 pass_re=re.compile(r"^.{3,20}$")
@@ -15,7 +18,8 @@ email_re=re.compile(r"^[\S]+@[\S]+\.[\S]+$")
 SECRET = 'somesecretshityo'
 
 IP_URL="http://api.hostip.info/?ip="
-GMAPS_URL = "http://maps.googleapis.com/maps/api/staticmap?size=380x263&sensor=false"
+GMAPS_URL = "http://maps.googleapis.com/maps/api/staticmap?"
+DISTRICT_MAP_URL = 'http://maps.googleapis.com/maps/api/staticmap?size=400x400&sensor=false&path=fillcolor:0xAA000033%7Ccolor:0xFFFFFF00%7Cenc:'
 
 def clear_cache(key):
     memcache.delete(key)
@@ -34,10 +38,21 @@ def get_contents_of_url(url):
     except URLError:
         return None
 
-def google_maps_img(points):
+def google_maps_img(points,name):
     if points:
-        markers='&'.join('markers=%s,%s' % (p.lat,p.lon) for p in points)
+        points=str(points[0])+','+str(points[1])
+        markers=('&center='+points+'&zoom=6&size=600x400&maptype=roadmap&markers=color:green%7Clabel:'+
+                    name+'%7C'+points+'&sensor=false')
         return GMAPS_URL+markers
+
+def google_maps_path_img(points):
+    new_points=[]
+    if points:
+        for p in points:
+            new_points.append((p[0],p[1]))
+    c=encoder.encode(new_points)
+    return DISTRICT_MAP_URL+c['points']
+
 
 def get_coords(ip):
     url=IP_URL+ip
@@ -49,6 +64,10 @@ def get_coords(ip):
         if coords and coords[0].childNodes[0].nodeValue:
             lon,lat=coords[0].childNodes[0].nodeValue.split(',')
             return db.GeoPt(lat,lon)
+
+def substitute_char(s,char,sub):
+    result = re.sub(char,sub,s)
+    return result
 
 def check_valid_entry(entry,check):
     result=""

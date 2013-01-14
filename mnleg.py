@@ -1,6 +1,6 @@
 
 import json
-from utils import get_contents_of_url,getFromCache,putInCache
+from utils import get_contents_of_url,getFromCache,putInCache,substitute_char
 
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
@@ -13,7 +13,8 @@ def getMNLegAllDistricts():
 
 def getMNLegDistrictById(district_id):
 	#http://openstates.org/api/v1/districts/boundary/sldu/mn-11/?apikey=4a26c19c3cae4f6c843c3e7816475fae
-	pass
+	url=base_url+'districts/boundary/'+district_id+'/?'+apikey_url+API_KEY
+	return sendGetRequest(url)
 
 def getMNLegAllEvents():
 	#http://openstates.org/api/v1/events/?state=mn&apikey=4a26c19c3cae4f6c843c3e7816475fae
@@ -55,6 +56,7 @@ def getMNLegBillInfobyId(bill,session):
 	return sendGetRequest(url)
 
 def sendGetRequest(url):
+	url=substitute_char(url,' ','%20')
 	response = get_contents_of_url(url)
 	if response:
 		data=json.loads(response)
@@ -72,7 +74,7 @@ def getAllDistricts():
 			return None
 	return data
 
-def getEventById(district_id):
+def getDistrictById(district_id):
 	data=getFromCache(district_id)
 	if not data:
 		data=getMNLegDistrictById(district_id)

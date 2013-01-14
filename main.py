@@ -19,8 +19,13 @@ import webapp2
 import os
 import jinja2
 from google.appengine.api import mail
-from utils import check_secure_val,make_secure_val,check_valid_signup,escape_html
-from mnleg import getSessionNames,getBillNames,getBillInfo,getCurrentLegislators,getLegislatorByID,getAllCommittees,getCommitteeById,getAllEvents,getEventById
+from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
+                    google_maps_img,google_maps_path_img)
+from mnleg import (getSessionNames,getBillNames,getBillInfo,
+                    getCurrentLegislators,getLegislatorByID,
+                    getAllCommittees,getCommitteeById,
+                    getAllEvents,getEventById,
+                    getAllDistricts,getDistrictById)
 from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -84,6 +89,8 @@ class GenericHandler(webapp2.RequestHandler):
     	params=dict(path=path)
     	if self.user:
     		params['loggedin_user']=self.user.name
+        else:
+            params['loggedin_user']="Guest"
     	return params
 
     def initialize(self,*a,**kw):
@@ -96,6 +103,16 @@ class MainHandler(GenericHandler):
         params=self.check_login("/")
         self.render(main_page, **params)
 
+mnleg_session_names={
+    '2009-2010':'2009-2010',
+    '2010 1st Special Session':'2010-SP1',
+    '2010 2nd Special Session':'2010-SP2',
+    '2011-2012':'2011-2012',
+    '2011s1':'2011-SP1',
+    '2012s1':'2012-SP1',
+    '2013-2014':'2013-2014',
+}
+
 class SessionsHandler(GenericHandler):
     def get(self):
         params=self.check_login('/bills')
@@ -103,7 +120,6 @@ class SessionsHandler(GenericHandler):
             self.redirect('/signup')
         else:
             params["sessions"]=getSessionNames()
-            # params['bills']=
             self.render(sessions_page, **params)
 
 class BillsHandler(GenericHandler):
@@ -193,10 +209,13 @@ class DistrictHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            #params['district']=getDistrictById(district_id)
-            #self.render(district_page, **params)
-            self.write(district_id)
-
+            data=getDistrictById(district_id)
+            params['map_img_url']=google_maps_path_img(data['shape'][0][0])
+            # params['map_img_url']=google_maps_img((data['region']['center_lat'],
+            #                         data['region']['center_lon']),data['name'])
+            params['district']=data
+            self.render(district_page, **params)
+            #self.write(google_maps_path_img(data['shape'][0][0]))
 
 class SignupPage(GenericHandler):
     def get(self):
@@ -234,9 +253,7 @@ class ThankYouPage(GenericHandler):
         n=self.request.get('n')
         params["user"]=n
         u=User.by_name(n)
-        params["gmap"]=google_maps_img(u.coords)
         self.render(thankyou_page, **params)
-        #self.write(u.coords)
 
 class LoginPage(GenericHandler):
     def get(self):
@@ -266,8 +283,8 @@ class LogoutPage(GenericHandler):
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/bills/?', SessionsHandler),
-    ('/bills/([0-9A-Za-z- ]+)/?', BillsHandler),
-    ('/bills/([0-9A-Za-z- ]+)/([H|S][A-Z] [0-9]+)/?', BillInfoHandler),
+    ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
+    ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
     ('/legislators/?', LegislatureHandler),
     ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
@@ -275,7 +292,7 @@ app = webapp2.WSGIApplication([
     ('/events/?', AllEventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?', AllDistrictsHandler),
-    ('/districts/(mn-upper-[0-9]+)|(mn-lower-[0-9]+)/?', DistrictHandler),
+    ('/districts/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
     ('/thankyou/?', ThankYouPage),
     ('/signup/?', SignupPage),
     ('/login/?', LoginPage),
