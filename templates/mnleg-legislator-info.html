@@ -14,7 +14,11 @@
 </h2>
 <table>
 	<tr><td>
-		<img width="250px" src='{{legislator.photo_url}}'>
+		{% if legislator.chamber=='lower' %}
+			<img width="250px" src='{{legislator.photo_url}}'>
+		{% else %}
+			<img width="100px" src='{{legislator.photo_url}}'>
+		{% endif %}
 	</td><td>
 <strong>{{legislator.party}}</strong><br><br>
 <strong>District:</strong> {{legislator.district}}<br><br>
@@ -24,6 +28,7 @@
 {% if legislator.office_phone %}
 	<strong>Office phone:</strong> {{legislator.office_phone}}<br><br>
 {% endif %}
+{% if legislator.chamber=='lower' %}
 <strong>Committees:</strong>
 	{% for c in legislator.roles %}
 		<a href="/committees/{{c.committee_id}}">{{c.committee}}</a>
@@ -32,6 +37,7 @@
 		{% endif %}
 		<br>
 	{% endfor %}
+{% endif %}
 </td></tr></table>
 
 {% endblock %}
