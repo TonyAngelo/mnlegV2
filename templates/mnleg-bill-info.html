@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class='breadcrumb'><a href='/bills'>sessions</a> > <a href="/bills/{{bill_info.session}}">{{bill_info.session}}</a> > {{bill_info.bill_id}}</div>
+
+<h2>{{bill_info.bill_id}}</h2>
+<h4>{{bill_info.title}}</h4>
+
+<strong>First:</strong> {{bill_info.action_dates['first'][:10]}}<br>
+<strong>Last:</strong> {{bill_info.action_dates['last'][:10]}}<br>
+{% if bill_info.action_dates['passed_lower'] %}
+	<strong>Passed House:</strong> {{bill_info.action_dates['passed_lower'][:10]}}<br>
+{% endif %}
+{% if bill_info.action_dates['passed_upper'] %}
+	<strong>Passed Senate:</strong> {{bill_info.action_dates['passed_upper'][:10]}}<br>
+{% endif %}
+{% if bill_info.action_dates['signed'] %}
+	<strong>Signed:</strong> {{bill_info.action_dates['signed'][:10]}}<br>
+{% endif %}
+<br>
+<strong>Actions:</strong> <br>
+
+<ol>
+{% for a in bill_info.actions %}
+
+<li>{{a.action}} <em>({{a.date[:10]}})</em></li>
+
+{% endfor %}
+</ol>
+<h4>Sponsors</h4>
+{% for s in bill_info.sponsors %}
+	<a href="/legislators/{{s.leg_id}}">{{s.name}}</a> - {{s.type}}
+	<br>
+{% endfor %}
+
+{% endblock %}

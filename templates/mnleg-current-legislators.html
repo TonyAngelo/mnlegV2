@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Current Minnesota State Legislators</h2>
+
+{% for l in legislators %}
+	
+	{% if l.chamber=='lower' %}
+	Rep.
+	{% else %}
+	Sen.
+	{% endif %}
+	<a href='/legislators/{{l.id}}'>
+	{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+	<br>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+ 
+	<div class="login-area">
+
+		<h2>Login</h2><br>
+		<form method="post">
+		    <label>Username <input type="text" name="username" value="{{user}}"></label><br>
+		    <label>Password <input type="password" name="password" value=""></label><br>
+		    <div class="error">{{error}}</div>
+		    <br>
+		    <input type="submit">
+		</form>
+	</div>
+	
+{% endblock %}

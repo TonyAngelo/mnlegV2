@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{committee.committee}}</h2>
+
+<h4>Members:</h4>
+
+	{% for m in committee.members %}
+		<a href="/legislators/{{m.leg_id}}">{{m.name}}</a>
+		{% if m.role!='member' %}
+			- <em>{{m.role}}</em>
+		{% endif %}
+		<br>
+	{% endfor %}
+
+{% endblock %}

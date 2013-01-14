@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+ 
+	<div class="signup-area">
+
+		<h2>Signup!</h2><br>
+		<form method="post">
+		    <label>Username <input type="text" name="username" value="{{user}}"> {{user_error}}</label><br>
+		    <label>Password <input type="password" name="password" value=""> {{pass_error}}</label><br>
+		    <label>Verify Password <input type="password" name="verify" value=""> {{verify_error}}</label><br>
+		    <label>Email <input type="text" name="email" value="{{email}}"> {{email_error}}</label><br>
+		    <br>
+		    <input type="submit">
+		</form>
+	</div>
+	
+{% endblock %}

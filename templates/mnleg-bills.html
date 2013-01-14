@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class='breadcrumb'><a href='/bills'>sessions</a> > {{path}}</a></div>
+
+<h2>{{path}}</h2>
+
+<dl>
+
+{% for b in bills %}
+
+	    <dt><a href="/bills/{{path}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>
+	    <dd>{{b.title}}</dd>
+
+{% endfor %}
+
+{% endblock %}

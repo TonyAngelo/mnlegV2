@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>
+	{% if legislator.chamber=='lower' %}
+	Representative 
+	{% else %}
+	Senator 
+	{% endif %}
+	{{legislator.first_name}} {% if legislator.nickname %}"{{legislator.nickname}}"{% endif %} {{legislator.last_name}}
+</h2>
+<table>
+	<tr><td>
+		<img width="250px" src='{{legislator.photo_url}}'>
+	</td><td>
+<strong>{{legislator.party}}</strong><br><br>
+<strong>District:</strong> {{legislator.district}}<br><br>
+{% if legislator.email %}
+	<strong>Email:</strong>{{legislator.email}}<br><br>
+{% endif %}
+{% if legislator.office_phone %}
+	<strong>Office phone:</strong> {{legislator.office_phone}}<br><br>
+{% endif %}
+<strong>Committees:</strong>
+	{% for c in legislator.roles %}
+		<a href="/committees/{{c.committee_id}}">{{c.committee}}</a>
+		{% if c.position and c.position!="member" %}
+			- <em>{{c.position}}</em>
+		{% endif %}
+		<br>
+	{% endfor %}
+</td></tr></table>
+
+{% endblock %}
