@@ -4,30 +4,55 @@
 
 <h2>Minnesota State Legislators</h2>
 
-<table>
-	<tr><td width='400px'><h3>Senators</h3></td>
-		<td width='400px'><h3>Representatives</h3></td></tr>
-	<tr><td valign="top">
-
-	{% for l in legislators %}
+<div id="leg-tabs">
+  <ul>
+    <li><a href="#leg-tabs-1">Senate</a></li>
+    <li><a href="#leg-tabs-2">House</a></li>
+  </ul>
+  <div id="leg-tabs-1">
+    <p>
+    	<table><tr><td><h3>Democrats</h3></td><td><h3>Republicans</h3></td></tr>
+    	<tr><td width="400px">
+    	{% for l in legislators %}
 		
-		{% if l.chamber=='upper' %}
+		{% if l.chamber=='upper' and l.party[0]=='D' %}
 			Sen. <a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
 			<br>
 		{% endif %}
-	{% endfor %}
-
-	</td><td valign="top">
-
-	{% for l in legislators %}
+		{% endfor %}
+		</td><td width="400px" valign='top'>
+		{% for l in legislators %}
 		
-		{% if l.chamber=='lower' %}
-			Rep. <a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+		{% if l.chamber=='upper' and l.party[0]=='R' %}
+			Sen. <a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
 			<br>
 		{% endif %}
-	{% endfor %}
-
-	</td></tr>
-</table>
+		{% endfor %}
+		</td></tr></table>
+	</p>
+  </div>
+  <div id="leg-tabs-2">
+    <p>
+    	<table><tr><td><h3>Democrats</h3></td><td><h3>Republicans</h3></td></tr>
+    	<tr><td width="400px">
+    	{% for l in legislators %}
+		
+		{% if l.chamber=='lower' and l.party[0]=='D' %}
+			Rep. <a href='/legislators/{{l.id}}'>{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<br>
+		{% endif %}
+		{% endfor %}
+		</td><td width="400px" valign='top'>
+		{% for l in legislators %}
+		
+		{% if l.chamber=='lower' and l.party[0]=='R' %}
+			Rep. <a href='/legislators/{{l.id}}'>{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<br>
+		{% endif %}
+		{% endfor %}
+		</td></tr></table>
+    </p>
+  </div>
+</div>
 
 {% endblock %}

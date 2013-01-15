@@ -46,7 +46,7 @@ def getMNLegMetaData():
 	url=base_url+'metadata/mn/?'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
-def getMNLegBillsbySession(session,per_page='200',page='1'):
+def getMNLegBillsbySession(session,per_page='2000',page='1'):
 	session_url='state=mn&search_window=session:'+session+'&'
 	url=base_url+'bills/?'+session_url+'&per_page='+per_page+'&page='+page+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)

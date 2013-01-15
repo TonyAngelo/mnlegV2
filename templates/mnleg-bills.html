@@ -6,13 +6,36 @@
 
 <h2>{{path}}</h2>
 
-<dl>
+<div id="bills-tabs">
+  <ul>
+    <li><a href="#bills-tabs-1">Senate</a></li>
+    <li><a href="#bills-tabs-2">House</a></li>
+  </ul>
+  <div id="bills-tabs-1">
+    <p>
+    <dl>
+		{% for b in bills %}
+			{% if b.bill_id[0]=='S' %}
+				<dt><a href="/bills/{{path}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>
+				<dd>{{b.title}}</dd>
+			{% endif %}
+		{% endfor %}
+	</dl>
+	</p>
 
-{% for b in bills %}
-
-	    <dt><a href="/bills/{{path}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>
-	    <dd>{{b.title}}</dd>
-
-{% endfor %}
+  </div>
+  <div id="bills-tabs-2">
+    <p>
+    <dl>
+		{% for b in bills %}
+			{% if b.bill_id[0]=='H' %}
+				<dt><a href="/bills/{{path}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>
+				<dd>{{b.title}}</dd>
+			{% endif %}
+		{% endfor %}
+	</dl>
+    </p>
+  </div>
+</div>
 
 {% endblock %}

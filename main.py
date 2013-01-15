@@ -211,11 +211,8 @@ class DistrictHandler(GenericHandler):
         else:
             data=getDistrictById(district_id)
             params['map_img_url']=google_maps_path_img(data['shape'][0][0])
-            # params['map_img_url']=google_maps_img((data['region']['center_lat'],
-            #                         data['region']['center_lon']),data['name'])
             params['district']=data
             self.render(district_page, **params)
-            #self.write(google_maps_path_img(data['shape'][0][0]))
 
 class SignupPage(GenericHandler):
     def get(self):
