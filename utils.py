@@ -22,7 +22,10 @@ GMAPS_URL = "http://maps.googleapis.com/maps/api/staticmap?"
 DISTRICT_MAP_URL = 'http://maps.googleapis.com/maps/api/staticmap?size=400x400&sensor=false&path=fillcolor:0xAA000033%7Ccolor:0xFFFFFF00%7Cenc:'
 
 def clear_cache(key):
-    memcache.delete(key)
+    if key!=None:
+        memcache.delete(key)
+    else:
+        memcache.flush_all()
 
 def getFromCache(key):
     result=memcache.get(key)

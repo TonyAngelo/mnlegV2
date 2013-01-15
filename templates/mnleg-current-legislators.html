@@ -16,7 +16,7 @@
     	{% for l in legislators %}
 		
 		{% if l.chamber=='upper' and l.party[0]=='D' %}
-			Sen. <a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
 			<br>
 		{% endif %}
 		{% endfor %}
@@ -24,7 +24,7 @@
 		{% for l in legislators %}
 		
 		{% if l.chamber=='upper' and l.party[0]=='R' %}
-			Sen. <a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<a href='/legislators/{{l.id}}'> {{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
 			<br>
 		{% endif %}
 		{% endfor %}
@@ -38,7 +38,7 @@
     	{% for l in legislators %}
 		
 		{% if l.chamber=='lower' and l.party[0]=='D' %}
-			Rep. <a href='/legislators/{{l.id}}'>{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<a href='/legislators/{{l.id}}'>{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
 			<br>
 		{% endif %}
 		{% endfor %}
@@ -46,7 +46,7 @@
 		{% for l in legislators %}
 		
 		{% if l.chamber=='lower' and l.party[0]=='R' %}
-			Rep. <a href='/legislators/{{l.id}}'>{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
+			<a href='/legislators/{{l.id}}'>{{l.first_name}} {{l.last_name}}</a> ({{l.party[0]}}-{{l.district}})
 			<br>
 		{% endif %}
 		{% endfor %}

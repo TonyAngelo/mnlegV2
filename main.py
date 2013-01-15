@@ -20,7 +20,7 @@ import os
 import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
-                    google_maps_img,google_maps_path_img)
+                    google_maps_img,google_maps_path_img,clear_cache)
 from mnleg import (getSessionNames,getBillNames,getBillInfo,
                     getCurrentLegislators,getLegislatorByID,
                     getAllCommittees,getCommitteeById,
@@ -277,6 +277,12 @@ class LogoutPage(GenericHandler):
         self.logout()
         self.redirect("/")
 
+class ClearCachePage(GenericHandler):
+    def get(self):
+        clear_cache(None)
+        self.redirect("/")
+
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/bills/?', SessionsHandler),
@@ -294,4 +300,5 @@ app = webapp2.WSGIApplication([
     ('/signup/?', SignupPage),
     ('/login/?', LoginPage),
     ('/logout/?', LogoutPage),
+    ('/clearcache/?', ClearCachePage),
 ], debug=True)

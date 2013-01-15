@@ -12,7 +12,7 @@ class User(db.Model):
     email=db.StringProperty(required=True)
     valid=db.StringProperty(required=True)
     user_ip=db.StringProperty()
-    coords=db.GeoPtProperty()
+    #coords=db.GeoPtProperty()
 
     @classmethod
     def by_id(cls, uid):
@@ -26,13 +26,13 @@ class User(db.Model):
     @classmethod
     def register(cls,name,pw,email,user_ip,valid="True"):
         code=make_pw_hash(name,pw)
-        coords=get_coords(user_ip)
+        #coords=get_coords(user_ip)
         return User(parent = users_key(),
         			name=name,
                     code=code,
                     email=email,
                     user_ip=user_ip,
-                    coords=coords,
+                    #coords=coords,
                     valid=valid)
 
     @classmethod
