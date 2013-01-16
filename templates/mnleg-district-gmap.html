@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+      var map;
+      var infoWindow;
+
+      function initialize() {
+        var myLatLng=new google.maps.LatLng({{lat}}, {{lon}});
+        var sw=new google.maps.LatLng({{sw_lat}}, {{sw_lon}});
+        var ne=new google.maps.LatLng({{ne_lat}}, {{ne_lon}});
+        //var myBounds=new google.maps.LatLngBounds(sw_bound, ne_bound);
+        var GLOBE_WIDTH = 256; // a constant in Google's map projection
+		var west = sw.lng();
+		var east = ne.lng();
+		var angle = east - west;
+		if (angle < 0) {
+		  angle += 360;
+		}
+		var zoom = Math.round(Math.log(800 * 360 / angle / GLOBE_WIDTH) / Math.LN2);
+		if (zoom > 11) {
+			zoom = zoom-2;
+		}
+		else {
+			zoom = zoom-1;
+		}
+        var mapOptions = {
+          zoom: zoom,
+          maxZoom: 15,
+          minZoom: 6,
+          center: myLatLng,
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+
+        var district;
+
+        map = new google.maps.Map(document.getElementById('map_canvas'),
+            mapOptions);
+
+        var districtCoords = [
+          {% for c in coords %}
+          	new google.maps.LatLng({{c[0]}}, {{c[1]}}),
+          {% endfor %}
+        ];
+
+        district = new google.maps.Polygon({
+          paths: districtCoords,
+          strokeColor: '#FF0000',
+          strokeOpacity: 0.8,
+          strokeWeight: 3,
+          fillColor: '#FF0000',
+          fillOpacity: 0.35
+        });
+
+        district.setMap(map);
+
+        // Add a listener for the click event
+        google.maps.event.addListener(district, 'click', showInfo);
+       
+        infowindow = new google.maps.InfoWindow();
+      }
+
+      function showInfo(event) {
+
+        var contentString = ('<b>{% if chamber=="lower" %}House District {{district_num}}</b><br>Representative {% else %}Senate District {{district_num}}</b><br>Senator {% endif %}<a href="/legislators/{{leg_id}}">{{leg_first}} {{leg_last}}</a><br>{{party}}');
+
+        // Replace our Info Window's content and position
+        infowindow.setContent(contentString);
+        infowindow.setPosition(event.latLng);
+
+        infowindow.open(map);
+      }
+
+
+    </script>
+
+<div class='breadcrumb'><a href='/districts'>districts</a> > {{district.name}}</div>
+
+<h2>{% if district.chamber=='upper' %}
+		Senate district
+	{% else %}
+		House district
+	{% endif %}
+	{{district.name}}
+</h2>
+
+<div id="map_canvas" style="width:800px;height:500px;"></div>
+
+
+{% endblock %}

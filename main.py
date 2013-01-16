@@ -20,9 +20,9 @@ import os
 import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
-                    google_maps_img,google_maps_path_img,clear_cache)
+                    clear_cache)
 from mnleg import (getSessionNames,getBillNames,getBillInfo,
-                    getCurrentLegislators,getLegislatorByID,
+                    getCurrentLegislators,getLegislatorByID,getLegislatorByDistrict,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,
                     getAllDistricts,getDistrictById)
@@ -43,7 +43,7 @@ all_events_page="mnleg-events-page.html"
 event_page="mnleg-event.html"
 legislator_info_page="mnleg-legislator-info.html"
 all_districts_page="mnleg-districts-page.html"
-district_page="mnleg-district.html"
+district_page="mnleg-district-gmap.html"
 signup_page="signup.html"
 login_page="login.html"
 thankyou_page="thankyou.html"
@@ -210,7 +210,22 @@ class DistrictHandler(GenericHandler):
             self.redirect('/signup')
         else:
             data=getDistrictById(district_id)
-            params['map_img_url']=google_maps_path_img(data['shape'][0][0])
+            legislator=getLegislatorByDistrict(data['name'])
+            params['district_num']=data['name']
+            params['leg_first']=legislator[0]['first_name']
+            params['leg_last']=legislator[0]['last_name']
+            params['leg_id']=legislator[0]['leg_id']
+            params['img_url']=legislator[0]['photo_url']
+            params['party']=legislator[0]['party']
+            params['chamber']=legislator[0]['chamber']
+            params['district_map']='True'
+            params['sw_lat']=data['bbox'][0][0]
+            params['sw_lon']=data['bbox'][0][1]
+            params['ne_lat']=data['bbox'][1][0]
+            params['ne_lon']=data['bbox'][1][1]
+            params['lat']=data['region']['center_lat']
+            params['lon']=data['region']['center_lon']
+            params['coords']=data['shape'][0][0]
             params['district']=data
             self.render(district_page, **params)
 

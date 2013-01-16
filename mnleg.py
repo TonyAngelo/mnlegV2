@@ -11,6 +11,10 @@ def getMNLegAllDistricts():
 	url=base_url+'districts/mn/?'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
+def getLegislatorByDistrict(district):
+	url=base_url+'legislators/?state=mn&district='+district+'&'+apikey_url+API_KEY
+	return sendGetRequest(url)
+
 def getMNLegDistrictById(district_id):
 	#http://openstates.org/api/v1/districts/boundary/sldu/mn-11/?apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'districts/boundary/'+district_id+'/?'+apikey_url+API_KEY
@@ -79,6 +83,10 @@ def getDistrictById(district_id):
 	if not data:
 		data=getMNLegDistrictById(district_id)
 		if data:
+			new_shape=[]
+	 		for p in data['shape'][0][0]:
+	 			new_shape.append([p[1],p[0]])
+	 		data['shape'][0][0]=new_shape
 	 		putInCache(district_id,data)
 		else:
 			return None
