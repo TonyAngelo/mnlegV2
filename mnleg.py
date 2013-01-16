@@ -47,6 +47,7 @@ def getMNLegislatorByActive():
 	return sendGetRequest(url)
 
 def getMNLegMetaData():
+	#http://openstates.org/api/v1/metadata/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'metadata/mn/?'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
@@ -87,10 +88,23 @@ def getDistrictById(district_id):
 	 		for p in data['shape'][0][0]:
 	 			new_shape.append([p[1],p[0]])
 	 		data['shape'][0][0]=new_shape
+	 		legislator=getLegislatorByDistrict(data['name'])
+	 		if legislator!=None:
+		 		data['legislator']=legislator
 	 		putInCache(district_id,data)
 		else:
 			return None
 	return data
+
+def getAllDistrictsByID():
+	data=getFromCache('all_districts')
+	if not data:
+		data=getAllDistricts()
+		all_data=[]
+		for d in data:
+			all_data.append(getDistrictById(d['boundary_id']))
+		#putInCache('all_districts',all_data)
+	return all_data
 
 def getAllEvents():
 	data=getFromCache('events')

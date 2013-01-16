@@ -10,32 +10,10 @@
     <li><a href="#district-tabs-2">House</a></li>
   </ul>
   <div id="district-tabs-1">
-    <p>
-    	{% for d in districts %}
-	
-			{% if d.chamber=='upper' %}
-			
-				<a href='/districts/{{d.boundary_id}}'>{{d.name}}</a>
-				<br>
-			
-			{% endif %}
-			
-		{% endfor %}
-	</p>
+    <p>{% for d in districts %}{% if d.chamber=='upper' %}<a href='/districts/{{d.boundary_id}}'>{{d.name}}</a> - {% endif %}{% endfor %}</p>
   </div>
   <div id="district-tabs-2">
-    <p>
-    	{% for d in districts %}
-			
-			{% if d.chamber=='lower' %}
-			
-				<a href='/districts/{{d.boundary_id}}'>{{d.name}}</a>
-				<br>
-			
-			{% endif %}
-			
-		{% endfor %}
-    </p>
+    <p>{% for d in districts %}{% if d.chamber=='lower' %}<a href='/districts/{{d.boundary_id}}'>{{d.name}}</a> - {% endif %}{% endfor %}</p>
   </div>
 </div>
 

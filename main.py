@@ -22,7 +22,8 @@ from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
                     clear_cache)
 from mnleg import (getSessionNames,getBillNames,getBillInfo,
-                    getCurrentLegislators,getLegislatorByID,getLegislatorByDistrict,
+                    getCurrentLegislators,getLegislatorByID,
+                    getLegislatorByDistrict,getAllDistrictsByID,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,
                     getAllDistricts,getDistrictById)
@@ -102,16 +103,6 @@ class MainHandler(GenericHandler):
     def get(self):
         params=self.check_login("/")
         self.render(main_page, **params)
-
-mnleg_session_names={
-    '2009-2010':'2009-2010',
-    '2010 1st Special Session':'2010-SP1',
-    '2010 2nd Special Session':'2010-SP2',
-    '2011-2012':'2011-2012',
-    '2011s1':'2011-SP1',
-    '2012s1':'2012-SP1',
-    '2013-2014':'2013-2014',
-}
 
 class SessionsHandler(GenericHandler):
     def get(self):
@@ -201,6 +192,8 @@ class AllDistrictsHandler(GenericHandler):
             self.redirect('/signup')
         else:
             params['districts']=getAllDistricts()
+            #params['districts']=getAllDistrictsByID()
+            #params['district_map']='True'
             self.render(all_districts_page, **params)
 
 class DistrictHandler(GenericHandler):
@@ -210,14 +203,13 @@ class DistrictHandler(GenericHandler):
             self.redirect('/signup')
         else:
             data=getDistrictById(district_id)
-            legislator=getLegislatorByDistrict(data['name'])
             params['district_num']=data['name']
-            params['leg_first']=legislator[0]['first_name']
-            params['leg_last']=legislator[0]['last_name']
-            params['leg_id']=legislator[0]['leg_id']
-            params['img_url']=legislator[0]['photo_url']
-            params['party']=legislator[0]['party']
-            params['chamber']=legislator[0]['chamber']
+            params['leg_first']=data['legislator'][0]['first_name']
+            params['leg_last']=data['legislator'][0]['last_name']
+            params['leg_id']=data['legislator'][0]['leg_id']
+            params['img_url']=data['legislator'][0]['photo_url']
+            params['party']=data['legislator'][0]['party']
+            params['chamber']=data['legislator'][0]['chamber']
             params['district_map']='True'
             params['sw_lat']=data['bbox'][0][0]
             params['sw_lon']=data['bbox'][0][1]

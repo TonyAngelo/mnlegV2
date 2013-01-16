@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+    var map;
+    var infoWindow;
+
+    function initialize() {
+        var myLatLng=new google.maps.LatLng(46.4, -94);
+
+        var mapOptions = {
+          zoom: 6,
+          maxZoom: 13,
+          minZoom: 6,
+          center: myLatLng,
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+
+        map = new google.maps.Map(document.getElementById('map_canvas'),
+            mapOptions);
+
+        {% for d in districts %}
+
+        	var district;
+        	var districtCoords = [
+	          	{% for c in d['shape'][0][0] %}
+	          		new google.maps.LatLng({{c[1]}}, {{c[0]}}),
+	          	{% endfor %}
+        	];
+
+	        {% if d['legislator']['party'][0]=="D" %}
+	        	var color='#0000FF';
+	        {% else %}
+	        	var color='#FF0000';
+	        {% endif %}
+
+        	district = new google.maps.Polygon({
+	          paths: districtCoords,
+	          strokeColor: color,
+	          strokeOpacity: 0.8,
+	          strokeWeight: 3,
+	          fillColor: color,
+	          fillOpacity: 0.35
+	        });
+
+        	district.setMap(map);
+
+        {% endfor %}
+
+      }
+
+    </script>
+
+<h2>Minnesota Legislative Districts</h2>
+
+<div id="map_canvas" style="width:800px;height:500px;"></div>
+{% endblock %}

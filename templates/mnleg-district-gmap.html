@@ -4,30 +4,24 @@
 
 <script type="text/javascript">
 
-      var map;
-      var infoWindow;
+    var map;
+    var infoWindow;
 
-      function initialize() {
+    function initialize() {
         var myLatLng=new google.maps.LatLng({{lat}}, {{lon}});
         var sw=new google.maps.LatLng({{sw_lat}}, {{sw_lon}});
         var ne=new google.maps.LatLng({{ne_lat}}, {{ne_lon}});
-        //var myBounds=new google.maps.LatLngBounds(sw_bound, ne_bound);
         var GLOBE_WIDTH = 256; // a constant in Google's map projection
-		var west = sw.lng();
-		var east = ne.lng();
-		var angle = east - west;
-		if (angle < 0) {
-		  angle += 360;
-		}
-		var zoom = Math.round(Math.log(800 * 360 / angle / GLOBE_WIDTH) / Math.LN2);
-		if (zoom > 11) {
-			zoom = zoom-2;
-		}
-		else {
-			zoom = zoom-1;
-		}
+		    var west = sw.lng();
+  		  var east = ne.lng();
+  		  var angle = east - west;
+  		  if (angle < 0) {
+  		    angle += 360;
+  		  }
+    		var zoom = Math.round(Math.log(800 * 360 / angle / GLOBE_WIDTH) / Math.LN2);
+
         var mapOptions = {
-          zoom: zoom,
+          zoom: zoom-1,
           maxZoom: 15,
           minZoom: 6,
           center: myLatLng,
@@ -45,12 +39,18 @@
           {% endfor %}
         ];
 
+        {% if party[0]=="D" %}
+        	var color='#0000FF';
+        {% else %}
+        	var color='#FF0000';
+        {% endif %}
+
         district = new google.maps.Polygon({
           paths: districtCoords,
-          strokeColor: '#FF0000',
+          strokeColor: color,
           strokeOpacity: 0.8,
           strokeWeight: 3,
-          fillColor: '#FF0000',
+          fillColor: color,
           fillOpacity: 0.35
         });
 
@@ -64,7 +64,7 @@
 
       function showInfo(event) {
 
-        var contentString = ('<b>{% if chamber=="lower" %}House District {{district_num}}</b><br>Representative {% else %}Senate District {{district_num}}</b><br>Senator {% endif %}<a href="/legislators/{{leg_id}}">{{leg_first}} {{leg_last}}</a><br>{{party}}');
+        var contentString = ('<table><tr><td><img width="80px" src="{{img_url}}"></td><td><b>{% if chamber=="lower" %}House District {{district_num}}</b><br>Representative {% else %}Senate District {{district_num}}</b><br>Senator {% endif %}<a href="/legislators/{{leg_id}}">{{leg_first}} {{leg_last}}</a><br>{{party}}</td></tr></table>');
 
         // Replace our Info Window's content and position
         infowindow.setContent(contentString);
@@ -79,14 +79,14 @@
 <div class='breadcrumb'><a href='/districts'>districts</a> > {{district.name}}</div>
 
 <h2>{% if district.chamber=='upper' %}
-		Senate district
+		Senate District
 	{% else %}
-		House district
+		House District
 	{% endif %}
 	{{district.name}}
 </h2>
-
-<div id="map_canvas" style="width:800px;height:500px;"></div>
-
+click district for details<br><br>
+<div id="map_canvas" style="width:800px;height:500px;"></div><br>
+ne: {{ne_lat}},{{ne_lon}} sw: {{sw_lat}}, {{sw_lon}}
 
 {% endblock %}
