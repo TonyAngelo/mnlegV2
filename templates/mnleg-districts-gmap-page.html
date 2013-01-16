@@ -22,38 +22,41 @@
             mapOptions);
 
         {% for d in districts %}
-
-        	var district;
-        	var districtCoords = [
-	          	{% for c in d['shape'][0][0] %}
-	          		new google.maps.LatLng({{c[1]}}, {{c[0]}}),
-	          	{% endfor %}
-        	];
-
-	        {% if d['legislator']['party'][0]=="D" %}
-	        	var color='#0000FF';
-	        {% else %}
-	        	var color='#FF0000';
-	        {% endif %}
-
-        	district = new google.maps.Polygon({
-	          paths: districtCoords,
-	          strokeColor: color,
-	          strokeOpacity: 0.8,
-	          strokeWeight: 3,
-	          fillColor: color,
-	          fillOpacity: 0.35
-	        });
-
-        	district.setMap(map);
-
+          	var district;
+          	var districtCoords = [
+  	          	{% for c in d['shape'][0][0] %}new google.maps.LatLng({{c[0]}}, {{c[1]}}),{% endfor %}];
+  	        {% if d['legislator'][0]['party'][0]=="D" %}
+  	        	var color='#0000FF';
+  	        {% else %}
+  	        	var color='#FF0000';
+  	        {% endif %}
+          	district = new google.maps.Polygon({
+  	          paths: districtCoords,
+  	          strokeColor: color,
+  	          strokeOpacity: 0.8,
+  	          strokeWeight: 3,
+  	          fillColor: color,
+  	          fillOpacity: 0.35
+  	        });
+          	district.setMap(map);
+            infowindow = new google.maps.InfoWindow();
+            google.maps.event.addListener(district, 'click', function(evt) {
+              var contentString = ('<table><tr><td><img width="80px" src="{{d["legislator"][0]["photo_url"]}}"></td><td><b>{% if d["chamber"]=="lower" %}<a href="/districts/{{d["boundary_id"]}}">House District {{d["name"]}}</a></b><br>Representative {% else %}<a href="/districts/{{d["boundary_id"]}}">Senate District {{d["name"]}}</a></b><br>Senator {% endif %}{{d["legislator"][0]["first_name"]}} {{d["legislator"][0]["last_name"]}}<br>{{d["legislator"][0]["party"]}}</td></tr></table>');
+              infowindow.setContent(contentString);
+              infowindow.setPosition(evt.latLng);
+              infowindow.open(map);
+            });
         {% endfor %}
-
       }
-
     </script>
 
-<h2>Minnesota Legislative Districts</h2>
-
+<form>
+  <div id="district-radio">
+    <input type="submit" name="chamber" value='Senate'/>
+    <input type="submit" name="chamber" value='House'/>
+  </div>
+</form>
+<h2>Minnesota {% if district_map=='upper' %}Senate{% else %}House{% endif %} Districts</h2>
+<br>
 <div id="map_canvas" style="width:800px;height:500px;"></div>
 {% endblock %}

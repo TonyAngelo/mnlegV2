@@ -43,7 +43,7 @@ committee_page="mnleg-committee.html"
 all_events_page="mnleg-events-page.html"
 event_page="mnleg-event.html"
 legislator_info_page="mnleg-legislator-info.html"
-all_districts_page="mnleg-districts-page.html"
+all_districts_page="mnleg-districts-gmap-page.html"
 district_page="mnleg-district-gmap.html"
 signup_page="signup.html"
 login_page="login.html"
@@ -59,6 +59,13 @@ def render_str(template, **params):
 
 def render_signup_email_body(user,email,user_ip):
 	return sign_up_body+"\n"+"Username: "+user+"\n"+"Email: "+email+"/n"+"IP: "+user_ip
+
+def get_chamber_name(chamber):
+    if chamber=="House":
+        body='lower'
+    else:
+        body='upper'
+    return body
 
 class GenericHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
@@ -191,10 +198,19 @@ class AllDistrictsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['districts']=getAllDistricts()
-            #params['districts']=getAllDistrictsByID()
-            #params['district_map']='True'
+            chamber=self.request.get("chamber")
+            body=get_chamber_name(chamber)
+            params['districts']=getAllDistrictsByID(body)
+            params['district_map']=body
             self.render(all_districts_page, **params)
+
+    def post(self):
+        params=self.check_login('districts')
+        chamber=self.request.get("chamber")
+        body=get_chamber_name(chamber)
+        params['districts']=getAllDistrictsByID(body)
+        params['district_map']=body
+        self.render(all_districts_page, **params)
 
 class DistrictHandler(GenericHandler):
     def get(self,district_id):
@@ -203,22 +219,8 @@ class DistrictHandler(GenericHandler):
             self.redirect('/signup')
         else:
             data=getDistrictById(district_id)
-            params['district_num']=data['name']
-            params['leg_first']=data['legislator'][0]['first_name']
-            params['leg_last']=data['legislator'][0]['last_name']
-            params['leg_id']=data['legislator'][0]['leg_id']
-            params['img_url']=data['legislator'][0]['photo_url']
-            params['party']=data['legislator'][0]['party']
-            params['chamber']=data['legislator'][0]['chamber']
+            params['data']=data
             params['district_map']='True'
-            params['sw_lat']=data['bbox'][0][0]
-            params['sw_lon']=data['bbox'][0][1]
-            params['ne_lat']=data['bbox'][1][0]
-            params['ne_lon']=data['bbox'][1][1]
-            params['lat']=data['region']['center_lat']
-            params['lon']=data['region']['center_lon']
-            params['coords']=data['shape'][0][0]
-            params['district']=data
             self.render(district_page, **params)
 
 class SignupPage(GenericHandler):

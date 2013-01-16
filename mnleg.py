@@ -96,14 +96,15 @@ def getDistrictById(district_id):
 			return None
 	return data
 
-def getAllDistrictsByID():
+def getAllDistrictsByID(chamber):
 	data=getFromCache('all_districts')
 	if not data:
 		data=getAllDistricts()
 		all_data=[]
 		for d in data:
-			all_data.append(getDistrictById(d['boundary_id']))
-		#putInCache('all_districts',all_data)
+			if d['chamber']==chamber:
+				all_data.append(getDistrictById(d['boundary_id']))
+		putInCache(chamber+'_districts',all_data)
 	return all_data
 
 def getAllEvents():
