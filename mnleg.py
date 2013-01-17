@@ -55,9 +55,13 @@ def getMNLegBillsbyQuery(query):
 	url=base_url+'bills/?state=mn&'+query+apikey_url+API_KEY
 	return sendGetRequest(url)
 
+def getMNLegBillsbyAuthor(author):
+	url=base_url+'bills/?state=mn&search_window=session&sponsor_id='+author+'&'+apikey_url+API_KEY
+	return sendGetRequest(url)
+
 def getMNLegBillsbyKeyword(keyword):
 	#http://openstates.org/api/v1/bills/?q=smoking&apikey=4a26c19c3cae4f6c843c3e7816475fae
-	url=base_url+'bills/?q='+keyword+'&'+apikey_url+API_KEY
+	url=base_url+'bills/?state=mn&q='+keyword+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
 def getMNLegBillsbySession(session,per_page='2000',page='1'):
@@ -78,15 +82,13 @@ def sendGetRequest(url):
 	else:
 		return None
 
-def getMNLegBillsbySearch(**params):
-	querystring=''
-	if params['senate_author']!='none':
-		querystring+='sponsor_id='+params['senate_author']+'&'
-	elif params['house_author']!='none':
-		querystring+='sponsor_id='+params['house_author']+'&'
-	if params['keyword']:
-		querystring+='q='+params['keyword']+'&'
-	return getMNLegBillsbyQuery(querystring)
+# def getMNLegBillsbySearch(**params):
+# 	querystring=''
+# 	if params['keyword']:
+# 		querystring+='q='+params['keyword']+'&'
+# 	elif params['author']!='none':
+# 		querystring+='sponsor_id='+params['house_author']+'&'
+# 	return getMNLegBillsbyQuery(querystring)
 
 def getAllDistricts():
 	data=getFromCache('districts')

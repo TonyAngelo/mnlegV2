@@ -22,11 +22,18 @@
 		$(function() {
 		    $( "#committee-tabs" ).tabs();
 		});
+    $(function() {
+    var currentLegs = [
+        {% if search_page %}{% for l in legislators %}
+        {label:'{{l.first_name}} {{l.last_name}}',
+        value:'{{l.leg_id}}',},
+        {% endfor %}{% endif %} 
+      ];
+      $( "#legs" ).autocomplete({
+        source: currentLegs
+      });
+    });
   	</script>
-    
-    {% if district_map %}
-    
-    {% endif %}
 
 {% if district_map %}
 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>

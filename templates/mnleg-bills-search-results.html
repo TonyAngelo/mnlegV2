@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class='breadcrumb'><a href='/bills'>bills</a> </div>
+<div class='breadcrumb'><a href='/bills'>bills</a> > search: {% if keyword %}{{keyword}}{% endif %}{% if author %}{{author}}{% endif %}</div>
 
 <dl>
 	{% for b in bills %}

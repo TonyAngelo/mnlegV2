@@ -27,7 +27,7 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,
                     getAllDistricts,getDistrictById,
-                    getMNLegBillsbySearch)
+                    getMNLegBillsbyAuthor,getMNLegBillsbyKeyword)
 from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -122,21 +122,24 @@ class SessionsHandler(GenericHandler):
         else:
             params["sessions"],params["details"]=getSessionNames()
             params['legislators']=getCurrentLegislators()
+            params['search_page']="True"
             self.render(bills_search_page, **params)
 
     def post(self):
         params={}
         submit=self.request.get("submit")
-        if submit=='Find Bill':
+        if submit=='Search by Bill':
             bill=self.request.get("bill")
             session=self.request.get("session")
             params['bill_info']=getBillById(bill,session)
             self.render(bill_info_page, **params)
-        else:
-            params['senate_author']=self.request.get("senate_author")
-            params['house_author']=self.request.get("house_author")
+        elif submit=='Search by Keyword':
             params['keyword']=self.request.get("keyword")
-            params['bills']=getMNLegBillsbySearch( **params)
+            params['bills']=getMNLegBillsbyKeyword(params['keyword'])
+            self.render(bills_search_results_page, **params)
+        else:
+            params['author']=self.request.get("leg")
+            params['bills']=getMNLegBillsbyAuthor(params['author'])
             self.render(bills_search_results_page, **params)
         
 class BillsHandler(GenericHandler):
