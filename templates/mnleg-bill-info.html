@@ -2,13 +2,14 @@
 
 {% block content %}
 
-<div class='breadcrumb'><a href='/bills'>sessions</a> > <a href="/bills/{{bill_info.session}}">{{bill_info.session}}</a> > {{bill_info.bill_id}}</div>
+<div class='breadcrumb'><a href='/bills'>bills</a> > <a href="/bills/{{bill_info.session}}">{{bill_info.session}}</a> > {{bill_info.bill_id}}</div>
 
-<h2>{{bill_info.bill_id}}</h2>
-<h4>{{bill_info.title}}</h4>
+<h2>{{bill_info.bill_id}} - {{bill_info.title}}</h2>
+<br>
+<a href="{{bill_info.versions[-1].url}}" target="_blank">Link to current bill text</a>
+<br><br>
+<strong>Updated:</strong> {{bill_info.updated_at[:10]}}<br>
 
-<strong>First:</strong> {{bill_info.action_dates['first'][:10]}}<br>
-<strong>Last:</strong> {{bill_info.action_dates['last'][:10]}}<br>
 {% if bill_info.action_dates['passed_lower'] %}
 	<strong>Passed House:</strong> {{bill_info.action_dates['passed_lower'][:10]}}<br>
 {% endif %}
@@ -21,13 +22,13 @@
 <br>
 <strong>Actions:</strong> <br>
 
-<ol>
+<ul>
 {% for a in bill_info.actions %}
 
 <li>{{a.action}} <em>({{a.date[:10]}})</em></li>
 
 {% endfor %}
-</ol>
+</ul>
 <h4>Sponsors</h4>
 {% for s in bill_info.sponsors %}
 	<a href="/legislators/{{s.leg_id}}">{{s.name}}</a> - {{s.type}}

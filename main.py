@@ -21,12 +21,13 @@ import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
                     clear_cache)
-from mnleg import (getSessionNames,getBillNames,getBillInfo,
+from mnleg import (getSessionNames,getBillNames,getBillById,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,
-                    getAllDistricts,getDistrictById)
+                    getAllDistricts,getDistrictById,
+                    getMNLegBillsbySearch)
 from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -36,6 +37,8 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
 main_page="front.html"
 sessions_page="mnleg-sessions.html"
 bills_page="mnleg-bills.html"
+bills_search_page="mnleg-bills-search.html"
+bills_search_results_page="mnleg-bills-search-results.html"
 bill_info_page="mnleg-bill-info.html"
 current_legislators_page="mnleg-current-legislators.html"
 all_committees_page="mnleg-current-committees.html"
@@ -117,9 +120,25 @@ class SessionsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params["sessions"]=getSessionNames()
-            self.render(sessions_page, **params)
+            params["sessions"],params["details"]=getSessionNames()
+            params['legislators']=getCurrentLegislators()
+            self.render(bills_search_page, **params)
 
+    def post(self):
+        params={}
+        submit=self.request.get("submit")
+        if submit=='Find Bill':
+            bill=self.request.get("bill")
+            session=self.request.get("session")
+            params['bill_info']=getBillById(bill,session)
+            self.render(bill_info_page, **params)
+        else:
+            params['senate_author']=self.request.get("senate_author")
+            params['house_author']=self.request.get("house_author")
+            params['keyword']=self.request.get("keyword")
+            params['bills']=getMNLegBillsbySearch( **params)
+            self.render(bills_search_results_page, **params)
+        
 class BillsHandler(GenericHandler):
     def get(self,path):
         params=self.check_login(path)
@@ -135,7 +154,7 @@ class BillInfoHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['bill_info']=getBillInfo(bill,session)
+            params['bill_info']=getBillById(bill,session)
             self.render(bill_info_page, **params)
 
 class LegislatureHandler(GenericHandler):

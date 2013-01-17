@@ -6,7 +6,7 @@
 	
 <ul id="sessions-list">
 	{% for s in sessions %}
-	    <li><a href="/bills/{{s}}">{{s}}</a></li>
+	    <li><a href="/bills/{{s}}">{{s.displayname}}</a></li>
 	{% endfor %}
 
 </ul>

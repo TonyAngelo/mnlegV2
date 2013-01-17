@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<table><tr><td width="400" valign="top">
+<h2>Bill Search</h2>
+<br>search by bill<br><br>
+<form method="post">
+<input size="10" placeholder="(ex. SF 1)" name="bill" value="{{bill}}" pattern="([Ss|Hh][A-Za-z] [0-9]+)"> 
+<select name='session'>
+	{% for s in sessions %}
+	 	<option value="{{s}}">{{details[s]['display_name']}}</option>
+	{% endfor %}
+</select><br><br>
+<input type="submit" name='submit' value="Find Bill">
+<br><br>
+or search by any combination of the following
+<br><br>
+keyword<br>
+	<input size="30" placeholder="(ex. Vikings Stadium)" name="keyword" value="{{keyword}}" pattern="([a-zA-Z0-9 ]+)">
+	<br><br>
+	author<br>
+	<select name="senate_author">
+		<option value='none'>Senators</option>
+		{% for l in legislators %}{% if l.chamber=='upper' %}<option value='{{l.id}}'>{{l.first_name}} {{l.last_name}}</option>{% endif %}{% endfor %}
+	</select> or 
+	<select name 'house_author'>
+		<option value='none'>Representatives</option>
+		{% for l in legislators %}{% if l.chamber=='lower' %}<option value='{{l.id}}'>{{l.first_name}} {{l.last_name}}</option>{% endif %}{% endfor %}
+	</select>
+	<br><br>
+	<input type="submit" name='submit' value="Search for Bill">
+</form>
+<br>
+</td><td width="400" valign="top">
+<h2>Bulk Session Search</h2>
+<br>Search all bill for a session
+
+<ul id="sessions-list">
+	{% for s in sessions %}
+	    <li><a href="/bills/{{s}}">{{details[s]['display_name']}}</a></li>
+	{% endfor %}
+
+</ul>
+</td></tr></table>
+
+{% endblock %}
