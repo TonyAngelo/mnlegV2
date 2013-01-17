@@ -50,13 +50,9 @@
       }
     </script>
 
-<form>
-  <div id="district-radio">
-    <input type="submit" name="chamber" value='Senate'/>
-    <input type="submit" name="chamber" value='House'/>
-  </div>
-</form>
-<h2>Minnesota {% if district_map=='upper' %}Senate{% else %}House{% endif %} Districts</h2>
-<br>
+<a class="chambers" href="/districts/senate">Senate</a>
+<a class="chambers" href="/districts/house">House</a>
+<h2 style="display:inline; margin-left:75px;">Minnesota {% if district_map=='upper' %}Senate{% else %}House{% endif %} Districts</h2>
+<br><br>
 <div id="map_canvas" style="width:800px;height:500px;"></div>
 {% endblock %}

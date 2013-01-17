@@ -105,3 +105,22 @@ h2 {
     font-size: .80em;
 }
 
+#photos {
+   /* Prevent vertical gaps */
+   line-height: 0;
+   width:360px;
+   -webkit-column-count: 6;
+   -webkit-column-gap:   0px;
+   -moz-column-count:    6;
+   -moz-column-gap:      0px;
+   column-count:         6;
+   column-gap:           0px;
+   
+}
+
+#photos img {
+  /* Just in case there are inline attributes */
+  width: 60px !important;
+  height: auto !important;
+}
+
