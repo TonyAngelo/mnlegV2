@@ -168,19 +168,24 @@ class LegislatureHandler(GenericHandler):
         else:
             params['chamber']='upper'
             params['chamber_name']="Senators"
-            if path=="house":
+            if path=="representatives":
                 params['chamber']='lower'
                 params['chamber_name']='Representatives'
             params['legislators']=getCurrentLegislators()
             self.render(current_legislators_page, **params)
 
 class LegislatorHandler(GenericHandler):
-    def get(self,leg_id):
-        params=self.check_login('legislators/'+leg_id)
+    def get(self,path,leg_id):
+        params=self.check_login('legislators/'+path+'/'+leg_id)
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
             params['legislator']=getLegislatorByID(leg_id)
+            params['bills']=getMNLegBillsbyAuthor(leg_id)
+            districts=getAllDistricts()
+            for d in districts:
+                if d['name']==params['legislator']['district']:
+                    params['boundary_id']=d['boundary_id']
             self.render(legislator_info_page, **params)
 
 class AllCommitteesHandler(GenericHandler):
@@ -232,14 +237,16 @@ class AllDistrictsHandler(GenericHandler):
             self.render(all_districts_page, **params)
 
 class DistrictHandler(GenericHandler):
-    def get(self,district_id):
+    def get(self,path,district_id):
         params=self.check_login('districts/'+district_id)
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
             data=getDistrictById(district_id)
             params['data']=data
-            params['district_map']='True'
+            params['district_map']='senate'
+            if path=="house":
+                params['district_map']='house'
             self.render(district_page, **params)
 
 class SignupPage(GenericHandler):
@@ -316,14 +323,14 @@ app = webapp2.WSGIApplication([
     ('/bills/?', SessionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
-    ('/legislators/?((?:senate/?)|(?:house/?))?', LegislatureHandler),
-    ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
+    ('/legislators/?((?:senators/?)|(?:representatives/?))?', LegislatureHandler),
+    ('/legislators/((?:senators)|(?:representatives))/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
     ('/committees/(MNC[0-9]+)/?', CommitteeHandler),
     ('/events/?', AllEventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?((?:senate/?)|(?:house/?))?', AllDistrictsHandler),
-    ('/districts/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
+    ('/districts/((?:senate)|(?:house))/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
     ('/thankyou/?', ThankYouPage),
     ('/signup/?', SignupPage),
     ('/login/?', LoginPage),

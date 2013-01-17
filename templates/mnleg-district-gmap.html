@@ -64,7 +64,7 @@
 
       function showInfo(event) {
 
-        var contentString = ('<table><tr><td><img width="80px" src="{{data.legislator[0].photo_url}}"></td><td><b>{% if data.legislator[0].chamber=="lower" %}House District {{data.name}}</b><br>Representative {% else %}Senate District {{data.name}}</b><br>Senator {% endif %}<a href="/legislators/{{data.legislator[0].leg_id}}">{{data.legislator[0].first_name}} {{data.legislator[0].last_name}}</a><br>{{data.legislator[0].party}}</td></tr></table>');
+        var contentString = ('<table><tr><td><img width="80px" src="{{data.legislator[0].photo_url}}"></td><td><b>{% if data.legislator[0].chamber=="lower" %}House District {{data.name}}</b><br>Representative <a href="/legislators/house/{{data.legislator[0].leg_id}}">{% else %}Senate District {{data.name}}</b><br>Senator <a href="/legislators/senate/{{data.legislator[0].leg_id}}">{% endif %}{{data.legislator[0].first_name}} {{data.legislator[0].last_name}}</a><br>{{data.legislator[0].party}}</td></tr></table>');
 
         // Replace our Info Window's content and position
         infowindow.setContent(contentString);
@@ -76,7 +76,7 @@
 
     </script>
 
-<div class='breadcrumb'><a href='/districts'>districts</a> > {{data.name}}</div>
+<div class='breadcrumb'><a href='/districts'>districts</a> > {% if data.chamber=='upper' %}<a href='/districts/senate'>senate</a>{% else %}<a href='/districts/house'>house</a>{% endif %} > {{data.name}}</div>
 
 <h2>{% if data.chamber=='upper' %}
 		Senate District
