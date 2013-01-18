@@ -27,7 +27,8 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,
                     getAllDistricts,getDistrictById,
-                    getMNLegBillsbyAuthor,getMNLegBillsbyKeyword)
+                    getMNLegBillsbyAuthor,getMNLegBillsbyKeyword,
+                    getHPVIbyChamber,)
 from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -234,6 +235,7 @@ class AllDistrictsHandler(GenericHandler):
             if path=="house":
                 params['district_map']='lower'
             params['districts']=getAllDistrictsByID(params['district_map'])
+            params['hpvi']=getHPVIbyChamber(params['district_map'])
             self.render(all_districts_page, **params)
 
 class DistrictHandler(GenericHandler):

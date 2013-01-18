@@ -5,6 +5,8 @@ from utils import get_contents_of_url,getFromCache,putInCache,substitute_char
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
 apikey_url="apikey="
+senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=0&headers=1'
+house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
 
 def getMNLegAllDistricts():
 	#http://openstates.org/api/v1/districts/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
@@ -81,6 +83,29 @@ def sendGetRequest(url):
 		return data
 	else:
 		return None
+
+def fetchSenatehPVIfeed():
+	response = get_contents_of_url(senate_hpvi_feed_url)
+	data=json.loads(response[62:-2])
+	hpvi={}
+	for r in data['table']['rows']:
+		hpvi[r['c'][0]['f']]=r['c'][1]['v']
+	return hpvi
+
+def fetchHousehPVIfeed():
+	response = get_contents_of_url(house_hpvi_feed_url)
+	data=json.loads(response[62:-2])
+	hpvi={}
+	for r in data['table']['rows']:
+		hpvi[r['c'][0]['v']]=r['c'][1]['v']
+	return hpvi
+
+def getHPVIbyChamber(chamber):
+	if chamber=='upper':
+		hpvi=fetchSenatehPVIfeed()
+	else:
+		hpvi=fetchHousehPVIfeed()
+	return hpvi
 
 # def getMNLegBillsbySearch(**params):
 # 	querystring=''

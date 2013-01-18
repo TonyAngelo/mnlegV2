@@ -41,7 +41,7 @@
           	district.setMap(map);
             infowindow = new google.maps.InfoWindow();
             google.maps.event.addListener(district, 'click', function(evt) {
-              var contentString = ('<table><tr><td><img width="80px" src="{{d["legislator"][0]["photo_url"]}}"></td><td><b>{% if d["chamber"]=="lower" %}<a href="/districts/house/{{d["boundary_id"]}}">House District {{d["name"]}}</a></b><br>Representative {% else %}<a href="/districts/senate/{{d["boundary_id"]}}">Senate District {{d["name"]}}</a></b><br>Senator {% endif %}{{d["legislator"][0]["first_name"]}} {{d["legislator"][0]["last_name"]}}<br>{{d["legislator"][0]["party"]}}</td></tr></table>');
+              var contentString = ('<table><tr><td><img width="80px" src="{{d["legislator"][0]["photo_url"]}}"></td><td><b>{% if d["chamber"]=="lower" %}<a href="/districts/house/{{d["boundary_id"]}}">House District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Representative {% else %}<a href="/districts/senate/{{d["boundary_id"]}}">Senate District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Senator {% endif %}{{d["legislator"][0]["first_name"]}} {{d["legislator"][0]["last_name"]}}<br>{{d["legislator"][0]["party"]}}</td></tr></table>');
               infowindow.setContent(contentString);
               infowindow.setPosition(evt.latLng);
               infowindow.open(map);
@@ -52,7 +52,7 @@
 
 <a class="chambers" href="/districts/senate">Senate</a>
 <a class="chambers" href="/districts/house">House</a>
-<h2 style="display:inline; margin-left:75px;">Minnesota {% if district_map=='senate' %}Senate{% else %}House{% endif %} Districts</h2>
+<h2 style="display:inline; margin-left:75px;">Minnesota {% if district_map=='upper' %}Senate{% else %}House{% endif %} Districts</h2>
 <br><br>
 <div id="map_canvas" style="width:800px;height:500px;"></div>
 {% endblock %}
