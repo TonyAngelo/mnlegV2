@@ -9,7 +9,7 @@ apikey_url="apikey="
 senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=0&headers=1'
 house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
 senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
-house_2012_election_results=''
+house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
 
 def getMNLegAllDistricts():
 	#http://openstates.org/api/v1/districts/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
@@ -131,7 +131,16 @@ def fetchSenateElectionResults():
 	return results
 
 def fetchHouseElectionResults():
-	pass
+	response=getFromCache('house2012elections')
+	if not response:
+		response = get_contents_of_url(house_2012_election_results)
+		if response:
+			putInCache('house2012elections',response)
+	response = parseCSVfromURL(response,';')
+	results=[]
+	for r in response:
+		results.append([r[5],r[4],r[12],r[15]," ".join([x.capitalize() for x in r[7].split(" ")]),r[10],r[14],r[13]])
+	return results
 
 def get2012ElectionResultsbyChamber(chamber):
 	if chamber=='upper':
