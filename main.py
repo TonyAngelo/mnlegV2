@@ -28,7 +28,8 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getAllEvents,getEventById,
                     getAllDistricts,getDistrictById,
                     getMNLegBillsbyAuthor,getMNLegBillsbyKeyword,
-                    getHPVIbyChamber,)
+                    getHPVIbyChamber,
+                    get2012ElectionResultsbyChamber,get2012ElectionResultsbyDistrict)
 from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -246,10 +247,31 @@ class DistrictHandler(GenericHandler):
         else:
             data=getDistrictById(district_id)
             params['data']=data
-            params['district_map']='senate'
             if path=="house":
                 params['district_map']='house'
+                chamber='lower'
+            else:
+                params['district_map']='senate'
+                chamber='upper'
+            params['leg_results']=get2012ElectionResultsbyDistrict(data['name'],chamber)
+            params['hpvi']=getHPVIbyChamber(chamber)
             self.render(district_page, **params)
+
+# class ElectionsHandler(GenericHandler):
+#     def get(self):
+#         #r=get2012ElectionResultsbyChamber('upper')
+#         r=get2012ElectionResultsbyDistrict('49','upper')
+#         self.write(r[0][1])
+#         self.write('<br>')
+#         self.write('Precincts: '+r[0][2])
+#         self.write('<br>')
+#         self.write("Total Votes: "+r[0][3])
+#         self.write('<br>')
+#         self.write('<br>')
+#         for i in r:
+#             self.write(i[4]+" ("+i[5]+") "+i[6]+'%')
+#             self.write('<br>')
+
 
 class SignupPage(GenericHandler):
     def get(self):
@@ -323,6 +345,7 @@ class ClearCachePage(GenericHandler):
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/bills/?', SessionsHandler),
+    # ('/elections/?', ElectionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
     ('/legislators/?((?:senators/?)|(?:representatives/?))?', LegislatureHandler),

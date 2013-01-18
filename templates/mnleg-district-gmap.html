@@ -64,7 +64,7 @@
 
       function showInfo(event) {
 
-        var contentString = ('<table><tr><td><img width="80px" src="{{data.legislator[0].photo_url}}"></td><td><b>{% if data.legislator[0].chamber=="lower" %}House District {{data.name}}</b><br>Representative <a href="/legislators/house/{{data.legislator[0].leg_id}}">{% else %}Senate District {{data.name}}</b><br>Senator <a href="/legislators/senate/{{data.legislator[0].leg_id}}">{% endif %}{{data.legislator[0].first_name}} {{data.legislator[0].last_name}}</a><br>{{data.legislator[0].party}}</td></tr></table>');
+        var contentString = ('<table><tr><td><strong>2012 Election Results<br>{% if data.legislator[0].chamber=="lower" %}House{% else %}Senate{% endif %} District {{data.name}}<br>Total Votes:</strong> {{leg_results[0][3]}}<br><strong>Precincts:</strong> {{leg_results[0][2]}}<br><strong>hPVI:</strong> {{hpvi[data.name]}}<br><br>{% for l in leg_results %}<strong>{{l[4]}}</strong> ({{l[5]}}): {{l[6]}}%<br>{% endfor %}');
 
         // Replace our Info Window's content and position
         infowindow.setContent(contentString);
