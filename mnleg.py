@@ -199,43 +199,43 @@ def getAllDistrictsByID(chamber):
 	return all_data
 
 def getAllEvents():
-	data=getFromCache('events')
-	if not data:
-		data=getMNLegAllEvents()
-		if data:
-	 		putInCache('events',data)
-		else:
-			return None
+	# data=getFromCache('events')
+	# if not data:
+	data=getMNLegAllEvents()
+		# if data:
+	 # 		putInCache('events',data)
+		# else:
+		# 	return None
 	return data
 
 def getEventById(event_id):
-	data=getFromCache(event_id)
-	if not data:
-		data=getMNLegEventById(event_id)
-		if data:
-	 		putInCache(event_id,data)
-		else:
-			return None
+	# data=getFromCache(event_id)
+	# if not data:
+	data=getMNLegEventById(event_id)
+		# if data:
+	 # 		putInCache(event_id,data)
+		# else:
+		# 	return None
 	return data
 
 def getAllCommittees():
-	data=getFromCache('committees')
-	if not data:
-		data=getMNLegAllCommittees()
-		if data:
-	 		putInCache('committees',data)
-		else:
-			return None
+	# data=getFromCache('committees')
+	# if not data:
+	data=getMNLegAllCommittees()
+		# if data:
+	 # 		putInCache('committees',data)
+		# else:
+		# 	return None
 	return data
 
 def getCommitteeById(com_id):
-	data=getFromCache(com_id)
-	if not data:
-		data=getMNLegCommitteeById(com_id)
-		if data:
-	 		putInCache(com_id,data)
-		else:
-			return None
+	# data=getFromCache(com_id)
+	# if not data:
+	data=getMNLegCommitteeById(com_id)
+		# if data:
+	 # 		putInCache(com_id,data)
+		# else:
+		# 	return None
 	return data
 
 def getCurrentLegislators():

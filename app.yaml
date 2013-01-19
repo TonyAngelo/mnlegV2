@@ -15,9 +15,6 @@ handlers:
 - url: /js
   static_dir: js
 
-- url: /bs4
-  static_dir: bs4
-
 - url: .*
   script: main.app
 
