@@ -44,6 +44,7 @@ def getMNLegCommitteeById(com_id):
 	return sendGetRequest(url)
 
 def getMNLegislatorById(leg_id):
+	#http://openstates.org/api/v1/legislators/MNL000105/?apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'legislators/'+leg_id+'/?'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
@@ -60,8 +61,8 @@ def getMNLegBillsbyQuery(query):
 	url=base_url+'bills/?state=mn&'+query+apikey_url+API_KEY
 	return sendGetRequest(url)
 
-def getMNLegBillsbyAuthor(author):
-	url=base_url+'bills/?state=mn&search_window=session&sponsor_id='+author+'&'+apikey_url+API_KEY
+def getMNLegBillsbyAuthor(author,session='session'):
+	url=base_url+'bills/?state=mn&search_window='+session+'&sponsor_id='+author+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
 def getMNLegBillsbyKeyword(keyword):
@@ -75,6 +76,7 @@ def getMNLegBillsbySession(session,per_page='2000',page='1'):
 	return sendGetRequest(url)
 
 def getMNLegBillInfobyId(bill,session):
+	#http://openstates.org/api/v1/bills/mn/2013-2014/SF 18?apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'bills/mn/'+session+'/'+bill+'?'+apikey_url+API_KEY
 	return sendGetRequest(url)
 

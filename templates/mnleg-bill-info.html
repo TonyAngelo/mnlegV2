@@ -6,7 +6,7 @@
 
 <h2>{{bill_info.bill_id}} - {{bill_info.title}}</h2>
 <br>
-<table><tr><td valign='top' width="400px">
+<table><tr><td valign='top' width="375px">
 <a href="{{bill_info.versions[-1].url}}" target="_blank">Link to current bill text</a>
 <br><br>
 <strong>Updated:</strong> {{bill_info.updated_at[:10]}}<br>
@@ -21,23 +21,40 @@
 	<strong>Signed:</strong> {{bill_info.action_dates['signed'][:10]}}<br>
 {% endif %}
 <br>
-<strong>Actions:</strong> <br>
-
-<ul>
-{% for a in bill_info.actions %}
-
-<li>{{a.action}} <em>({{a.date[:10]}})</em></li>
-
-{% endfor %}
-</ul>
+{% if bill_info.subjects %}
+<strong>Subjects: </strong>{% for s in bill_info.subjects %}{{s}}, {% endfor %}
+{% endif %}
 <h4>Sponsors</h4>
 {% for s in bill_info.sponsors %}
 	<a href="/legislators/{{s.leg_id}}">{{s.name}}</a> - {{s.type}}
 	<br>
 {% endfor %}
-</td><td valign='top' width="400px">
+<h4>Actions</h4>
+<dl>
+{% for a in bill_info.actions %}
+<dt><em>{{a.date[:10]}}</em></dt><dd>{{a.action}}</dd>
+{% endfor %}
+</dl>
+<dl>
+<h4>Votes</h4>
+<div id="accordion">
+{% for v in bill_info.votes %}
+<h3>{{v.motion}}</h3>
+<div>{{v.date[:10]}}
+<table><tr><td>Yes: {{v.yes_count}}</td><td>No: {{v.no_count}}</td></tr><tr><td valign="top">
+{% for y in v.yes_votes %}{{y.name}}<br>{% endfor %}</td><td valign="top">
+{% for n in v.no_votes %}{{n.name}}<br>{% endfor %}</td></tr></table>
+</div>
+{% endfor %}
+</div>
+
+</td><td valign='top' width="25px"></td><td valign='top' width="400px">
 {% autoescape false %}
 	{{bill_text}}
 {% endautoescape %}
 </td></tr></table>
+
+{% if bill_info.sources %}
+source: <a href="{{bill_info.sources[0].url}}">{{bill_info.sources[0].url[:26]}}...</a>
+{% endif %}
 {% endblock %}

@@ -2,13 +2,15 @@
 
 {% block content %}
 
-<div class='breadcrumb'><a href='/legislators'>legislators</a> > {% if legislator.chamber=='upper' %}<a href='/legislators/senators'>senators</a>{% else %}<a href='/legislators/representatives'>representatives</a>{% endif %} > {{legislator.first_name}} {{legislator.last_name}}</div>
+<div class='breadcrumb'><a href='/legislators{% if legislator.chamber=='lower' %}?q=house{% endif %}'>legislators</a> > {{legislator.first_name}} {{legislator.last_name}}</div>
 
 <h2>
-	{% if legislator.chamber=='lower' %}
-	Representative 
-	{% else %}
-	Senator 
+	{% if legislator.active %}
+		{% if legislator.chamber=='lower' %}
+		Representative 
+		{% else %}
+		Senator 
+		{% endif %}
 	{% endif %}
 	{{legislator.first_name}} {% if legislator.nickname %}"{{legislator.nickname}}"{% endif %} {{legislator.last_name}}
 </h2>
@@ -21,7 +23,9 @@
 		{% endif %}
 	</td><td>
 <strong>{{legislator.party}}</strong><br><br>
-<strong>District:</strong> {% if legislator.chamber=='upper' %}<a href="/districts/senate/{{boundary_id}}">{{legislator.district}}</a>{% else %}<a href="/districts/house/{{boundary_id}}">{{legislator.district}}</a>{% endif %}<br><br>
+{% if legislator.district %}
+<strong>District:</strong> <a href="/districts/{{boundary_id}}">{{legislator.district}}</a><br><br>
+{% endif %}
 {% if legislator.email %}
 	<strong>Email:</strong>{{legislator.email}}<br><br>
 {% endif %}
@@ -40,7 +44,7 @@
 {% endif %}
 </td></tr></table>
 <br>
-<strong>Bills authored/co-authored this session</strong>
+<strong>Bills authored/co-authored</strong>
 <dl>
 	{% for b in bills %}
 			<dt><a href="/bills/{{b.session}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>

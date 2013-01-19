@@ -166,31 +166,46 @@ class BillInfoHandler(GenericHandler):
             self.render(bill_info_page, **params)
 
 class LegislatureHandler(GenericHandler):
-    def get(self,path):
+    def get(self):
         params=self.check_login('legislators')
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
             params['chamber']='upper'
-            params['chamber_name']="Senators"
-            if path=="representatives":
+            params['chamber_name']="Senate"
+            if self.request.get("q")=="house":
                 params['chamber']='lower'
-                params['chamber_name']='Representatives'
+                params['chamber_name']='House'
             params['legislators']=getCurrentLegislators()
+            params['search_page']="True"
             self.render(current_legislators_page, **params)
 
+    def post(self): # for handling leg searches
+        params={}
+        leg_id=self.request.get("leg")
+        params['legislator']=getLegislatorByID(leg_id)
+        params['bills']=getMNLegBillsbyAuthor(leg_id)
+        districts=getAllDistricts()
+        for d in districts:
+            if d['name']==params['legislator']['district']:
+                params['boundary_id']=d['boundary_id']
+        self.render(legislator_info_page, **params)
+
 class LegislatorHandler(GenericHandler):
-    def get(self,path,leg_id):
-        params=self.check_login('legislators/'+path+'/'+leg_id)
+    def get(self,leg_id):
+        params=self.check_login('legislators/'+leg_id)
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
             params['legislator']=getLegislatorByID(leg_id)
-            params['bills']=getMNLegBillsbyAuthor(leg_id)
             districts=getAllDistricts()
-            for d in districts:
-                if d['name']==params['legislator']['district']:
-                    params['boundary_id']=d['boundary_id']
+            if params['legislator']['active']:
+                params['bills']=getMNLegBillsbyAuthor(leg_id)
+                for d in districts:
+                    if d['name']==params['legislator']['district']:
+                        params['boundary_id']=d['boundary_id']
+            else:
+                params['bills']=getMNLegBillsbyAuthor(leg_id,'all')
             self.render(legislator_info_page, **params)
 
 class AllCommitteesHandler(GenericHandler):
@@ -230,34 +245,29 @@ class EventHandler(GenericHandler):
             self.render(event_page, **params)
 
 class AllDistrictsHandler(GenericHandler):
-    def get(self,path):
+    def get(self):
         params=self.check_login('districts')
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
             params['district_map']='upper'
-            if path=="house":
+            if self.request.get("q")=="house":
                 params['district_map']='lower'
             params['districts']=getAllDistrictsByID(params['district_map'])
             params['hpvi']=getHPVIbyChamber(params['district_map'])
             self.render(all_districts_page, **params)
 
 class DistrictHandler(GenericHandler):
-    def get(self,path,district_id):
+    def get(self,district_id):
         params=self.check_login('districts/'+district_id)
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
             data=getDistrictById(district_id)
             params['data']=data
-            if path=="house":
-                params['district_map']='house'
-                chamber='lower'
-            else:
-                params['district_map']='senate'
-                chamber='upper'
-            params['leg_results']=get2012ElectionResultsbyDistrict(data['name'],chamber)
-            params['hpvi']=getHPVIbyChamber(chamber)
+            params['district_map']='True'
+            params['leg_results']=get2012ElectionResultsbyDistrict(data['name'],data['chamber'])
+            params['hpvi']=getHPVIbyChamber(data['chamber'])
             self.render(district_page, **params)
 
 # class ElectionsHandler(GenericHandler):
@@ -351,14 +361,18 @@ app = webapp2.WSGIApplication([
     # ('/elections/?', ElectionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
-    ('/legislators/?((?:senators/?)|(?:representatives/?))?', LegislatureHandler),
-    ('/legislators/((?:senators)|(?:representatives))/(MNL[0-9]+)/?', LegislatorHandler),
+    # ('/legislators/?((?:senators/?)|(?:representatives/?))?', LegislatureHandler),
+    # ('/legislators/((?:senators)|(?:representatives))/(MNL[0-9]+)/?', LegislatorHandler),
+    ('/legislators/?', LegislatureHandler),
+    ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
     ('/committees/(MNC[0-9]+)/?', CommitteeHandler),
     ('/events/?', AllEventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
-    ('/districts/?((?:senate/?)|(?:house/?))?', AllDistrictsHandler),
-    ('/districts/((?:senate)|(?:house))/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
+    ('/districts/?', AllDistrictsHandler),
+    ('/districts/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
+    # ('/districts/?((?:senate/?)|(?:house/?))?', AllDistrictsHandler),
+    # ('/districts/((?:senate)|(?:house))/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
     ('/thankyou/?', ThankYouPage),
     ('/signup/?', SignupPage),
     ('/login/?', LoginPage),

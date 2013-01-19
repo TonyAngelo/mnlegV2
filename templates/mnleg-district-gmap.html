@@ -76,7 +76,7 @@
 
     </script>
 
-<div class='breadcrumb'><a href='/districts'>districts</a> > {% if data.chamber=='upper' %}<a href='/districts/senate'>senate</a>{% else %}<a href='/districts/house'>house</a>{% endif %} > {{data.name}}</div>
+<div class='breadcrumb'><a href='/districts{% if data.chamber=='lower' %}?q=house{% endif %}'>districts</a> > {{data.name}}</div>
 
 <h2>{% if data.chamber=='upper' %}
 		Senate District

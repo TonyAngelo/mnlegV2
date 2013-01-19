@@ -2,20 +2,26 @@
 
 {% block content %}
 
-<a class="chambers" href="/legislators/senators">Senate</a>
-<a class="chambers" href="/legislators/representatives">House</a>
+<a class="chambers" href="/legislators?q=senate">Senate</a>
+<a class="chambers" href="/legislators?q=house">House</a>
 
-<h2 style="display:inline; margin-left:75px;">Minnesota State {{chamber_name}}</h2>
+<div style="display:inline; float:right;">
+<form method="post">
+	search for a legislator 
+	<input placeholder="(autocomplete field)" id="legs" name='leg' />
+	<input type="submit" name='submit' value="Search">
+</form>
+</div>
 
 <table><tr><td width="400px" valign="top">
-  <h3>Democrats</h3>
+  <h3>{{chamber_name}} Democrats</h3>
   <section id="photos">
-    {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='D' and l.photo_url %}<a href='/legislators/{% if l.chamber=='upper' %}senators{% else %}representatives{% endif %}/{{l.id}}'><img title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="{{l.photo_url}}" width="50px"></a>{% endif %}{% endfor %}
+    {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='D' and l.photo_url %}<a href='/legislators/{{l.id}}'><img title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="{{l.photo_url}}" width="50px"></a>{% endif %}{% endfor %}
 	</section>
 </td><td width="400px" valign="top">
-	<h3>Republicans</h3>
+	<h3>{{chamber_name}} Republicans</h3>
   <section id="photos">
-	 {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='R' and l.photo_url %}<a href='/legislators/{% if l.chamber=='upper' %}senators{% else %}representatives{% endif %}/{{l.id}}'><img title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="{{l.photo_url}}" width="50px"></a>{% endif %}{% endfor %}
+	 {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='R' and l.photo_url %}<a href='/legislators/{{l.id}}'><img title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="{{l.photo_url}}" width="50px"></a>{% endif %}{% endfor %}
   </section>
 </td></tr></table>
 
