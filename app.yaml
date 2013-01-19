@@ -13,7 +13,10 @@ handlers:
   static_dir: static
 
 - url: /js
-  static_dir: js  
+  static_dir: js
+
+- url: /bs4
+  static_dir: bs4
 
 - url: .*
   script: main.app

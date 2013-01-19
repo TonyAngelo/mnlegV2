@@ -6,6 +6,7 @@
 
 <h2>{{bill_info.bill_id}} - {{bill_info.title}}</h2>
 <br>
+<table><tr><td valign='top' width="400px">
 <a href="{{bill_info.versions[-1].url}}" target="_blank">Link to current bill text</a>
 <br><br>
 <strong>Updated:</strong> {{bill_info.updated_at[:10]}}<br>
@@ -34,5 +35,9 @@
 	<a href="/legislators/{{s.leg_id}}">{{s.name}}</a> - {{s.type}}
 	<br>
 {% endfor %}
-
+</td><td valign='top' width="400px">
+{% autoescape false %}
+	{{bill_text}}
+{% endautoescape %}
+</td></tr></table>
 {% endblock %}

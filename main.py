@@ -20,7 +20,7 @@ import os
 import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
-                    clear_cache)
+                    clear_cache,getBillText)
 from mnleg import (getSessionNames,getBillNames,getBillById,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
@@ -34,7 +34,8 @@ from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-                               autoescape = True)
+                               autoescape = True,
+                               extensions=['jinja2.ext.autoescape'])
 
 main_page="front.html"
 sessions_page="mnleg-sessions.html"
@@ -160,6 +161,8 @@ class BillInfoHandler(GenericHandler):
             self.redirect('/signup')
         else:
             params['bill_info']=getBillById(bill,session)
+            url=params['bill_info']['versions'][-1]['url']
+            params['bill_text']=getBillText(url)
             self.render(bill_info_page, **params)
 
 class LegislatureHandler(GenericHandler):

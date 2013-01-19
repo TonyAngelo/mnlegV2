@@ -1,7 +1,7 @@
 import csv
 import cStringIO
 import json
-from utils import get_contents_of_url,getFromCache,putInCache,substitute_char
+from utils import get_contents_of_url,getFromCache,putInCache,substitute_char,bill_text_remove_markup
 
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
@@ -260,23 +260,23 @@ def getLegislatorByID(leg_id):
 
 def getBillById(bill,session):
 	path=session+bill
-	data=getFromCache(path)
-	if not data:
-		data=getMNLegBillInfobyId(bill,session)
-		if data:
-	 		putInCache(path,data)
-		else:
-			return None
+	# data=getFromCache(path)
+	# if not data:
+	data=getMNLegBillInfobyId(bill,session)
+		# if data:
+	 # 		putInCache(path,data)
+		# else:
+		# 	return None
 	return data
 
 def getBillNames(session):
-	data=getFromCache(session)
-	if not data:
-		data=getMNLegBillsbySession(session)
-		if data:
-			putInCache(session,data)
-		else:
-			return None
+	# data=getFromCache(session)
+	# if not data:
+	data=getMNLegBillsbySession(session)
+		# if data:
+		# 	putInCache(session,data)
+		# else:
+		# 	return None
 	bills=[]
 	for d in data:
 		bills.append(d)

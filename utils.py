@@ -6,15 +6,33 @@ import cgi
 import re
 import urllib2
 from xml.dom import minidom
-
 from google.appengine.api import memcache
+from bs4 import BeautifulSoup
 
 user_re=re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 pass_re=re.compile(r"^.{3,20}$")
 email_re=re.compile(r"^[\S]+@[\S]+\.[\S]+$")
 
+var_re=re.compile(r'<var>[0-9]+\.[0-9]+</var>')
+markup_id_re=re.compile(r'<a id="pl\.[0-9]+\.[0-9]+"></a>')
+break_re=re.compile(r'<br/?>')
+
 SECRET = 'somesecretshityo'
 IP_URL="http://api.hostip.info/?ip="
+
+def getBillText(url):
+    bill_page=get_contents_of_url(url)
+    clean_bill=substitute_char(bill_page,var_re,'')
+    clean_bill=substitute_char(clean_bill,markup_id_re,'')
+    soup=BeautifulSoup(clean_bill)
+    bill_text = soup.find_all('div','xtend')
+    for e in bill_text[0].findAll('br'):
+        e.extract()
+    br = soup.new_tag('br')
+    a = soup.new_tag('a')
+    for e in bill_text[0].findAll('a'):
+        e.insert_after(br)
+    return bill_text[0]
 
 def clear_cache(key):
     if key!=None:
@@ -50,6 +68,10 @@ def get_coords(ip):
 def substitute_char(s,char,sub):
     result = re.sub(char,sub,s)
     return result
+
+def bill_text_remove_markup(text):
+    text=substitute_char(text,var_re,'')
+    return text
 
 def check_valid_entry(entry,check):
     result=""
