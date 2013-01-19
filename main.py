@@ -20,7 +20,7 @@ import os
 import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
-                    clear_cache,getBillText)
+                    clear_cache,getFromCache,putInCache,getBillText)
 from mnleg import (getSessionNames,getBillNames,getBillById,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
@@ -82,6 +82,15 @@ class GenericHandler(webapp2.RequestHandler):
 
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
+
+    def districts_render(self, chamber, **kw):
+        page=self.render_str(all_districts_page, **kw)
+        if chamber=='house':
+            putInCache(chamber+'_districts_page1',page[:len(page)/2])
+            putInCache(chamber+'_districts_page2',page[len(page)/2:])
+        else:
+            putInCache(chamber+'_districts_page',page)
+        self.write(page)
 
     def set_secure_cookie(self,name,val):
         cookie_val=make_secure_val(val)
@@ -247,15 +256,26 @@ class EventHandler(GenericHandler):
 class AllDistrictsHandler(GenericHandler):
     def get(self):
         params=self.check_login('districts')
+        page=''
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['district_map']='upper'
-            if self.request.get("q")=="house":
+            chamber=self.request.get("q")
+            if chamber=="house":
                 params['district_map']='lower'
-            params['districts']=getAllDistrictsByID(params['district_map'])
-            params['hpvi']=getHPVIbyChamber(params['district_map'])
-            self.render(all_districts_page, **params)
+                p1=getFromCache(chamber+'_districts_page1')
+                p2=getFromCache(chamber+'_districts_page2')
+                if p1 and p2:
+                    page=p1+p2
+            else:
+                params['district_map']='upper'
+                page=getFromCache(chamber+'_districts_page')
+            if not page:
+                params['districts']=getAllDistrictsByID(params['district_map'])
+                params['hpvi']=getHPVIbyChamber(params['district_map'])
+                self.districts_render(chamber, **params)
+            else:
+                self.write(page)
 
 class DistrictHandler(GenericHandler):
     def get(self,district_id):

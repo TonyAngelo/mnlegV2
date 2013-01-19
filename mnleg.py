@@ -241,13 +241,14 @@ def getCommitteeById(com_id):
 	return data
 
 def getCurrentLegislators():
-	data=getFromCache('legislators')
-	if not data:
-		data=getMNLegislatorByActive()
-		if data:
-	 		putInCache('legislators',data)
-		else:
-			return None
+	# data=getFromCache('legislators')
+	# if not data:
+	data=getMNLegislatorByActive()
+	
+		# if data:
+	 # 		putInCache('legislators',data)
+		# else:
+		# 	return None
 	return data
 
 def getLegislatorByID(leg_id):
