@@ -9,6 +9,42 @@ body {
     color: #333;
 }
 
+#front-dashboard-container {
+    /*border: 1px solid black;*/
+    height:auto;
+}
+
+#front-leg-charts-container {
+    /*border: 1px solid black;*/
+    display: inline;
+    float:right;
+    padding: 0px 20px;
+}
+
+#front-house-daily {
+    /*border: 1px solid black;*/
+    width: 200px;
+    display: inline;
+    float: left;
+    padding: 10px;
+}
+
+#front-townhalls {
+    /*border: 1px solid black;*/
+    width: 200px;
+    display: inline;
+    float: right;
+    padding: 10px;
+}
+
+#current-bills {
+    /*border: 1px solid black;*/
+    width: 330px;
+    display: inline;
+    float:left;
+    padding: 10px;
+}
+
 .breadcrumb {
     font-size: .85em;
 }

@@ -5,6 +5,7 @@ import random
 import cgi
 import re
 import urllib2
+import datetime
 from xml.dom import minidom
 from google.appengine.api import memcache
 from bs4 import BeautifulSoup
@@ -15,35 +16,40 @@ email_re=re.compile(r"^[\S]+@[\S]+\.[\S]+$")
 
 var_re=re.compile(r'<var>[0-9]+\.[0-9]+</var>')
 markup_id_re=re.compile(r'<a id="pl\.[0-9]+\.[0-9]+"></a>')
-break_re=re.compile(r'<br/?>')
+anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
+
+#<a id="bill.0.1.0"></a> 
 
 SECRET = 'somesecretshityo'
 IP_URL="http://api.hostip.info/?ip="
 
-# def store(key, value, chunksize=950000):
-#   serialized = pickle.dumps(value, 2)
-#   values = {}
-#   for i in xrange(0, len(serialized), chunksize):
-#     values['%s.%s' % (key, i//chunksize)] = serialized[i : i+chunksize]
-#   memcache.set_multi(values)
+def getTodaysDate():
+    return datetime.date.today()
 
-# def retrieve(key):
-#   result = memcache.get_multi(['%s.%s' % (key, i) for i in xrange(32)])
-#   serialized = ''.join([v for k,v in result.values() of v is not None])
-#   return pickle.loads(serialized)
+def offsetDatebyDays(date,days):
+    z=datetime.timedelta(days=days)
+    return date-z
+
+def getCurrentBillsDateString():
+    d=offsetDatebyDays(getTodaysDate(),4)
+    return str(d.year)+"-"+str(d.month)+"-"+str(d.day)
 
 def getBillText(url):
     bill_page=get_contents_of_url(url)
     clean_bill=substitute_char(bill_page,var_re,'')
     clean_bill=substitute_char(clean_bill,markup_id_re,'')
     soup=BeautifulSoup(clean_bill)
-    bill_text = soup.find_all('div','xtend')
-    for e in bill_text[0].findAll('br'):
+    for e in soup.find_all('br'):
         e.extract()
     br = soup.new_tag('br')
-    a = soup.new_tag('a')
-    for e in bill_text[0].findAll('a'):
-        e.insert_after(br)
+    
+    bill_text = soup.find_all('div','xtend')
+
+    for e in bill_text[0]('a'):
+        bill_text[0].a.insert_before(br)
+        first_link = bill_text[0].a
+        first_link.find_next("a")
+
     return bill_text[0]
 
 def clear_cache(key):

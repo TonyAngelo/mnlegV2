@@ -15,8 +15,9 @@ google.load('visualization', '1', {'packages': ['corechart']});
 			}
 
 			var Htotals = response.getDataTable();         
-			var options = {title: 'House',
-							titleTextStyle:{fontSize:'14'},
+			var options = {//title: 'House',
+							// titleTextStyle:{fontSize:'1'},
+							legend:{position:'none'},
 							chartArea:{height: '80%',width:'90%'},
 							colors:['white','blue','red'],
 							backgroundColor: 'FFFFFF',
@@ -32,9 +33,9 @@ google.load('visualization', '1', {'packages': ['corechart']});
 			}
 
 			var Stotals = response.getDataTable();         
-			var options = {title: 'Senate',
-							titleTextStyle:{fontSize:'14'},
-							legend:{textStyle:{fontSize:'12'}},								
+			var options = {//title: 'Senate',
+							// titleTextStyle:{fontSize:'14'},
+							legend:{position:'none'},								
 							chartArea:{height: '80%',width:'90%'},
 							colors:['grey','blue','red'],
 							backgroundColor: 'FFFFFF',

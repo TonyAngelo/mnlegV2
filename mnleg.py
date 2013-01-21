@@ -1,7 +1,9 @@
 import csv
 import cStringIO
 import json
-from utils import get_contents_of_url,getFromCache,putInCache,substitute_char,bill_text_remove_markup
+import feedparser
+from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
+					bill_text_remove_markup,getCurrentBillsDateString)
 
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
@@ -10,6 +12,31 @@ senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=
 house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
 senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
 house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
+mn_house_session_daily='http://www.house.leg.state.mn.us/rss/sdaily.asp'
+mn_gop_townhalls='http://www.house.leg.state.mn.us/rss/townhallgop.asp'
+mn_dfl_townhalls='http://www.house.leg.state.mn.us/rss/townhalldfl.asp'
+
+def getFeed(link):
+	return feedparser.parse(link)
+
+def getMNHouseSessionDaily(n=10):
+	f = getFeed(mn_house_session_daily)
+	results=[]
+	for i in range(n):
+		if f['entries']:
+			results.append(f['entries'].pop(0))
+	return f['feed']['title'],results
+
+def getTownhallFeed(party,n=10):
+	if party=="dfl":
+		f=getFeed(mn_dfl_townhalls)
+	else:
+		f=getFeed(mn_gop_townhalls)
+	results=[]
+	for i in range(n):
+		if f['entries']:
+			results.append(f['entries'].pop(0))
+	return f['feed']['title'],results
 
 def getMNLegAllDistricts():
 	#http://openstates.org/api/v1/districts/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
@@ -65,12 +92,19 @@ def getMNLegBillsbyAuthor(author,session='session'):
 	url=base_url+'bills/?state=mn&search_window='+session+'&sponsor_id='+author+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
+def getMNLegBillsCurrent(n=10):
+	#http://openstates.org/api/v1/bills/?per_page=5&page=1&updated_since=2013-1-15&state=mn&search_window=session&apikey=4a26c19c3cae4f6c843c3e7816475fae
+	d=getCurrentBillsDateString()
+	url=base_url+'bills/?per_page='+str(n)+'&page=1&updated_since='+d+'&state=mn&search_window=session&apikey=4a26c19c3cae4f6c843c3e7816475fae'
+	return sendGetRequest(url)
+
 def getMNLegBillsbyKeyword(keyword):
 	#http://openstates.org/api/v1/bills/?q=smoking&apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'bills/?state=mn&q='+keyword+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
 def getMNLegBillsbySession(session,per_page='2000',page='1'):
+	#http://openstates.org/api/v1/bills/?state=mn&search_window=session&apikey=4a26c19c3cae4f6c843c3e7816475fae
 	session_url='state=mn&search_window=session:'+session+'&'
 	url=base_url+'bills/?'+session_url+'&per_page='+per_page+'&page='+page+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
@@ -116,9 +150,6 @@ def parseCSVfromURL(page,delimiter):
 	csvio = cStringIO.StringIO(page)
 	data = csv.reader(csvio, delimiter=delimiter)
 	return data
-
-def addDistrictElectionResults():
-	pass
 
 def fetchSenateElectionResults():
 	response=getFromCache('senate2012elections')

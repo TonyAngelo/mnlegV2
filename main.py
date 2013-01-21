@@ -25,10 +25,10 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
                     getAllCommittees,getCommitteeById,
-                    getAllEvents,getEventById,
+                    getAllEvents,getEventById,getMNLegBillsCurrent,
                     getAllDistricts,getDistrictById,
                     getMNLegBillsbyAuthor,getMNLegBillsbyKeyword,
-                    getHPVIbyChamber,
+                    getHPVIbyChamber,getMNHouseSessionDaily,getTownhallFeed,
                     get2012ElectionResultsbyChamber,get2012ElectionResultsbyDistrict)
 from models import User
 
@@ -124,6 +124,10 @@ class GenericHandler(webapp2.RequestHandler):
 class MainHandler(GenericHandler):
     def get(self):
         params=self.check_login("/")
+        params['house_daily_title'],params['house_daily_items'] = getMNHouseSessionDaily()
+        params['current_bills']=getMNLegBillsCurrent(10)
+        params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
+        params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
         self.render(main_page, **params)
 
 class SessionsHandler(GenericHandler):
