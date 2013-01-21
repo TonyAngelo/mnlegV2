@@ -13,30 +13,46 @@ house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=
 senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
 house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
 mn_house_session_daily='http://www.house.leg.state.mn.us/rss/sdaily.asp'
-mn_gop_townhalls='http://www.house.leg.state.mn.us/rss/townhallgop.asp'
-mn_dfl_townhalls='http://www.house.leg.state.mn.us/rss/townhalldfl.asp'
+
+mn_townhalls={
+	'dfl':['http://www.house.leg.state.mn.us/rss/townhalldfl.asp','DFL town hall meetings - Minnesota House of Representatives'],
+	'gop':['http://www.house.leg.state.mn.us/rss/townhallgop.asp','GOP town hall meetings - Minnesota House of Representatives'],
+}
+
+house_daily_key='Session Daily - Minnesota House of Representatives'
 
 def getFeed(link):
 	return feedparser.parse(link)
 
 def getMNHouseSessionDaily(n=10):
-	f = getFeed(mn_house_session_daily)
+	global house_daily_key
 	results=[]
-	for i in range(n):
-		if f['entries']:
-			results.append(f['entries'].pop(0))
-	return f['feed']['title'],results
-
-def getTownhallFeed(party,n=10):
-	if party=="dfl":
-		f=getFeed(mn_dfl_townhalls)
+	f=getFromCache(house_daily_key)
+	if not f:
+		f = getFeed(mn_house_session_daily)
+		for i in range(n):
+			if f['entries']:
+				results.append(f['entries'].pop(0))
+		house_daily_key=f['feed']['title']
+		putInCache(house_daily_key,results)
+		return house_daily_key,results
 	else:
-		f=getFeed(mn_gop_townhalls)
+		return house_daily_key,f
+
+def getTownhallFeed(party,n=5):
+	global mn_townhalls
 	results=[]
-	for i in range(n):
-		if f['entries']:
-			results.append(f['entries'].pop(0))
-	return f['feed']['title'],results
+	f=getFromCache(mn_townhalls[party][1])
+	if not f:
+		f=getFeed(mn_townhalls[party][0])
+		for i in range(n):
+			if f['entries']:
+				results.append(f['entries'].pop(0))
+		mn_townhalls[party][1]=f['feed']['title']
+		putInCache(mn_townhalls[party][1],results)
+		return mn_townhalls[party][1],results
+	else:
+		return mn_townhalls[party][1],f
 
 def getMNLegAllDistricts():
 	#http://openstates.org/api/v1/districts/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
@@ -192,6 +208,17 @@ def get2012ElectionResultsbyDistrict(district,chamber):
 		if r[0]==district:
 			d.append(r)
 	return d
+
+def getCurrentBills(n=10):
+	data=getFromCache('Current Bills')
+	if not data:
+		data = getMNLegBillsCurrent(n)
+		if data:
+			putInCache('Current Bills',data)
+		else:
+			return None
+	return data
+
 
 def getAllDistricts():
 	data=getFromCache('districts')

@@ -62,8 +62,8 @@ def getFromCache(key):
     result=memcache.get(key)
     return result
 
-def putInCache(key,data):
-    memcache.set(key,data)
+def putInCache(key,data,time=86400):
+    memcache.set(key,data,time=time)
 
 def get_contents_of_url(url):
     try:

@@ -25,7 +25,7 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
                     getAllCommittees,getCommitteeById,
-                    getAllEvents,getEventById,getMNLegBillsCurrent,
+                    getAllEvents,getEventById,getCurrentBills,
                     getAllDistricts,getDistrictById,
                     getMNLegBillsbyAuthor,getMNLegBillsbyKeyword,
                     getHPVIbyChamber,getMNHouseSessionDaily,getTownhallFeed,
@@ -125,7 +125,7 @@ class MainHandler(GenericHandler):
     def get(self):
         params=self.check_login("/")
         params['house_daily_title'],params['house_daily_items'] = getMNHouseSessionDaily()
-        params['current_bills']=getMNLegBillsCurrent(10)
+        params['current_bills']=getCurrentBills()
         params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
         params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
         self.render(main_page, **params)
