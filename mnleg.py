@@ -3,7 +3,7 @@ import cStringIO
 import json
 import feedparser
 from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
-					bill_text_remove_markup,getCurrentBillsDateString)
+					bill_text_remove_markup,getCurrentBillsDateString,getCommitteeMeetings)
 
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
@@ -293,11 +293,11 @@ def getCommitteeById(com_id):
 	data=getFromCache(com_id)
 	if not data:
 		data=getMNLegCommitteeById(com_id)
-		if data:
-	 		putInCache(com_id,data)
-		else:
+		putInCache(com_id,data)
+		if not data:
 			return None
-	return data
+	meetings=getCommitteeMeetings(data['sources'][0]['url'])
+	return data,meetings
 
 def getCurrentLegislators():
 	data=getFromCache('legislators')

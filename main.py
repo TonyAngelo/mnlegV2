@@ -30,7 +30,7 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getMNLegBillsbyAuthor,getMNLegBillsbyKeyword,
                     getHPVIbyChamber,getMNHouseSessionDaily,getTownhallFeed,
                     get2012ElectionResultsbyChamber,get2012ElectionResultsbyDistrict)
-from models import User,LegislatorPhoto
+from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -289,7 +289,7 @@ class CommitteeHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['committee']=getCommitteeById(com_id)
+            params['committee'],params['meetings']=getCommitteeById(com_id)
             self.render(committee_page, **params)
 
 class AllEventsHandler(GenericHandler):

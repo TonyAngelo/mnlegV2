@@ -6,7 +6,9 @@
 
 <h2>{{committee.committee}}</h2>
 
-<h4>Members:</h4>
+<table>
+	<tr><td valign="top" width="400px">
+	<h3>Members</h3>
 
 	{% for m in committee.members %}
 		<a href="/legislators/{{m.leg_id}}">{{m.name}}</a>
@@ -15,5 +17,11 @@
 		{% endif %}
 		<br>
 	{% endfor %}
+	</td><td valign="top" width="400px">
+	{% autoescape false %}
+		{{meetings}}
+	{% endautoescape %}
+	</td></tr>
+</table>
 
 {% endblock %}

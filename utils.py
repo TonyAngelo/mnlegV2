@@ -38,6 +38,12 @@ def getCurrentBillsDateString():
     d=offsetDatebyDays(getTodaysDate(),4)
     return str(d.year)+"-"+str(d.month)+"-"+str(d.day)
 
+def getCommitteeMeetings(url):
+    response=get_contents_of_url(url)
+    soup=BeautifulSoup(response)
+    meeting_text = soup.find_all('div','leg_col1of3-Last')
+    return meeting_text[0]
+
 def getBillText(url):
     bill_page=get_contents_of_url(url)
     clean_bill=substitute_char(bill_page,var_re,'')
