@@ -83,6 +83,7 @@ def getMNLegAllCommittees():
 	return sendGetRequest(url)
 
 def getMNLegCommitteeById(com_id):
+	#http://openstates.org/api/v1/committees/MNC000038/?apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'committees/'+com_id+'/?'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
@@ -259,54 +260,53 @@ def getAllDistrictsByID(chamber):
 	return all_data
 
 def getAllEvents():
-	# data=getFromCache('events')
-	# if not data:
-	data=getMNLegAllEvents()
-		# if data:
-	 # 		putInCache('events',data)
-		# else:
-		# 	return None
+	data=getFromCache('events')
+	if not data:
+		data=getMNLegAllEvents()
+		if data:
+	 		putInCache('events',data)
+		else:
+			return None
 	return data
 
 def getEventById(event_id):
-	# data=getFromCache(event_id)
-	# if not data:
-	data=getMNLegEventById(event_id)
-		# if data:
-	 # 		putInCache(event_id,data)
-		# else:
-		# 	return None
+	data=getFromCache(event_id)
+	if not data:
+		data=getMNLegEventById(event_id)
+		if data:
+	 		putInCache(event_id,data)
+		else:
+			return None
 	return data
 
 def getAllCommittees():
-	# data=getFromCache('committees')
-	# if not data:
-	data=getMNLegAllCommittees()
-		# if data:
-	 # 		putInCache('committees',data)
-		# else:
-		# 	return None
+	data=getFromCache('committees')
+	if not data:
+		data=getMNLegAllCommittees()
+		if data:
+	 		putInCache('committees',data)
+		else:
+			return None
 	return data
 
 def getCommitteeById(com_id):
-	# data=getFromCache(com_id)
-	# if not data:
-	data=getMNLegCommitteeById(com_id)
-		# if data:
-	 # 		putInCache(com_id,data)
-		# else:
-		# 	return None
+	data=getFromCache(com_id)
+	if not data:
+		data=getMNLegCommitteeById(com_id)
+		if data:
+	 		putInCache(com_id,data)
+		else:
+			return None
 	return data
 
 def getCurrentLegislators():
-	# data=getFromCache('legislators')
-	# if not data:
-	data=getMNLegislatorByActive()
-	
-		# if data:
-	 # 		putInCache('legislators',data)
-		# else:
-		# 	return None
+	data=getFromCache('legislators')
+	if not data:
+		data=getMNLegislatorByActive()
+		if data:
+	 		putInCache('legislators',data)
+		else:
+			return None
 	return data
 
 def getLegislatorByID(leg_id):
@@ -321,26 +321,28 @@ def getLegislatorByID(leg_id):
 
 def getBillById(bill,session):
 	path=session+bill
-	# data=getFromCache(path)
-	# if not data:
-	data=getMNLegBillInfobyId(bill,session)
-		# if data:
-	 # 		putInCache(path,data)
-		# else:
-		# 	return None
+	data=getFromCache(path)
+	if not data:
+		data=getMNLegBillInfobyId(bill,session)
+		if data:
+	 		putInCache(path,data)
+		else:
+			return None
 	return data
 
-def getBillNames(session):
-	# data=getFromCache(session)
-	# if not data:
-	data=getMNLegBillsbySession(session)
-		# if data:
-		# 	putInCache(session,data)
-		# else:
-		# 	return None
+def getBillNames(session,sort=True):
+	data=getFromCache(session)
+	if not data:
+		data=getMNLegBillsbySession(session)
+		if data:
+			putInCache(session,data)
+		else:
+			return None
 	bills=[]
 	for d in data:
-		bills.append(d)
+		n=int(d['bill_id'][3:])
+		bills.append((d,n))
+	bills.sort(key=lambda tup: tup[1],reverse=sort)
 	return bills
 
 def getSessionNames():

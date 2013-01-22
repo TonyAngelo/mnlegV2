@@ -9,6 +9,11 @@ body {
     color: #333;
 }
 
+#sort-methods {
+    display: inline;
+    float: right;
+}
+
 #front-dashboard-container {
     /*border: 1px solid black;*/
     height:auto;

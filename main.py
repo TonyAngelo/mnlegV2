@@ -30,7 +30,7 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getMNLegBillsbyAuthor,getMNLegBillsbyKeyword,
                     getHPVIbyChamber,getMNHouseSessionDaily,getTownhallFeed,
                     get2012ElectionResultsbyChamber,get2012ElectionResultsbyDistrict)
-from models import User
+from models import User,LegislatorPhoto
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -121,6 +121,55 @@ class GenericHandler(webapp2.RequestHandler):
         uid=self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
 
+# class JPEGHandler(webapp2.RequestHandler):
+#     def write_image(self,image):
+#         self.response.headers['Content-Type'] = 'image/jpeg'
+#         self.response.out.write(image)
+
+# class Image(JPEGHandler):
+#     def get(self,img_id):
+#         p = getFromCache('leg_photo_'+img_id)
+#         if p:
+#             self.write_image(p.photo)
+#         else:
+#             p = LegislatorPhoto.by_leg_id(img_id)
+#             if p:
+#                 putInCache('leg_photo_'+img_id,p,0)
+#                 self.write_image(p.photo)
+#             else:
+#                 l=getLegislatorByID(img_id)
+#                 if l:
+#                     url=l['photo_url']
+#                     p=LegislatorPhoto.create_photo(img_id,url)
+#                     p.put()
+#                     putInCache('leg_photo_'+img_id,p,0)
+#                     self.write_image(p.photo)
+#                 else:
+#                     self.error(404)
+
+# class Thumbnail(JPEGHandler):
+#     def get(self,img_id):
+#         t = getFromCache('leg_photo_thumb_'+img_id)
+#         if t:
+#             self.write_image(t)
+#         else:
+#             t = LegislatorPhoto.get_thumbnail(img_id)
+#             if t:
+#                 putInCache('leg_photo_thumb_'+img_id,t,0)
+#                 self.write_image(t)
+#             else:
+#                 l=getLegislatorByID(img_id)
+#                 if l:
+#                     url=l['photo_url']
+#                     p=LegislatorPhoto.create_photo(img_id,url)
+#                     p.put()
+#                     putInCache('leg_photo_'+img_id,p,0)
+#                     t = p.get_thumbnail(img_id)
+#                     putInCache('leg_photo_thumb_'+img_id,t,0)
+#                     self.write_image(t)
+#                 else:
+#                     self.error(404)
+
 class MainHandler(GenericHandler):
     def get(self):
         params=self.check_login("/")
@@ -164,7 +213,11 @@ class BillsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['bills']=getBillNames(path)
+            sort=self.request.get('s')
+            d=True
+            if sort=='asc':
+                d=False
+            params['bills']=getBillNames(path,d)
             self.render(bills_page, **params)
 
 class BillInfoHandler(GenericHandler):
@@ -382,6 +435,8 @@ class ClearCachePage(GenericHandler):
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/bills/?', SessionsHandler),
+    # ('/photos/(MNL[0-9]+)/?', Image),
+    # ('/thumbs/(MNL[0-9]+)/?', Thumbnail),
     # ('/elections/?', ElectionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),

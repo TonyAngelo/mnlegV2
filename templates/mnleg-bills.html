@@ -3,9 +3,13 @@
 {% block content %}
 
 <div class='breadcrumb'><a href='/bills'>bills</a> > {{path}}</div>
+<br>
+<h2 style="display:inline">{{path}}</h2>
 
-<h2>{{path}}</h2>
-
+<div id='sort-methods'>
+	sort: <a href="/bills/{{path}}?s=asc">asc</a> | <a href="/bills/{{path}}?s=dec">dec</a>
+</div>
+<br><br>
 <div id="bills-tabs">
   <ul>
     <li><a href="#bills-tabs-1">Senate</a></li>
@@ -15,9 +19,9 @@
     <p>
     <dl>
 		{% for b in bills %}
-			{% if b.bill_id[0]=='S' %}
-				<dt><a href="/bills/{{path}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>
-				<dd>{{b.title}}</dd>
+			{% if b[0].bill_id[0]=='S' %}
+				<dt><a href="/bills/{{path}}/{{b[0].bill_id}}">{{b[0].bill_id}}</a></dt>
+				<dd>{{b[0].title}}</dd>
 			{% endif %}
 		{% endfor %}
 	</dl>
@@ -28,9 +32,9 @@
     <p>
     <dl>
 		{% for b in bills %}
-			{% if b.bill_id[0]=='H' %}
-				<dt><a href="/bills/{{path}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>
-				<dd>{{b.title}}</dd>
+			{% if b[0].bill_id[0]=='H' %}
+				<dt><a href="/bills/{{path}}/{{b[0].bill_id}}">{{b[0].bill_id}}</a></dt>
+				<dd>{{b[0].title}}</dd>
 			{% endif %}
 		{% endfor %}
 	</dl>

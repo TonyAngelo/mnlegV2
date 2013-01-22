@@ -8,6 +8,7 @@ import urllib2
 import datetime
 from xml.dom import minidom
 from google.appengine.api import memcache
+from google.appengine.api import images
 from bs4 import BeautifulSoup
 
 user_re=re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
@@ -22,6 +23,9 @@ anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
 
 SECRET = 'somesecretshityo'
 IP_URL="http://api.hostip.info/?ip="
+
+def resize_image(image,width=0,height=0):
+    return images.resize(image, width, height)
 
 def getTodaysDate():
     return datetime.date.today()
@@ -69,7 +73,7 @@ def get_contents_of_url(url):
     try:
         content=urllib2.urlopen(url).read()
         return content
-    except URLError:
+    except urllib2.URLError:
         return None
 
 def get_coords(ip):
