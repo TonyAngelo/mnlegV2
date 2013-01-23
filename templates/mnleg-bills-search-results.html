@@ -3,6 +3,12 @@
 {% block content %}
 
 <div class='breadcrumb'><a href='/bills'>bills</a> > search: {% if keyword %}{{keyword}}{% endif %}{% if author %}{{author}}{% endif %}</div>
+<br>
+<h2 style="display:inline">search for: {{keyword}}</h2>
+
+<div id='sort-methods'>
+	sort: <a href="/bills?k={{keyword}}&s=asc">asc</a> | <a href="/bills?k={{keyword}}&s=dec">dec</a>
+</div>
 
 <dl>
 	{% for b in bills %}

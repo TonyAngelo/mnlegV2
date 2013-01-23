@@ -79,7 +79,22 @@ def get_contents_of_url(url):
     try:
         content=urllib2.urlopen(url).read()
         return content
-    except urllib2.URLError:
+    # except urllib2.URLError:
+    #     return None
+    # except urllib2.HTTPError:
+    #     return None
+    except urllib2.HTTPError, e:
+        #checksLogger.error('HTTPError = ' + str(e.code))
+        return None
+    except urllib2.URLError, e:
+        #checksLogger.error('URLError = ' + str(e.reason))
+        return None
+    # except httplib.HTTPException, e:
+    #     checksLogger.error('HTTPException')
+    #     return None
+    except Exception:
+        #import traceback
+        #checksLogger.error('generic exception: ' + traceback.format_exc())
         return None
 
 def get_coords(ip):

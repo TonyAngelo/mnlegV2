@@ -27,9 +27,10 @@ from mnleg import (getSessionNames,getBillNames,getBillById,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,getCurrentBills,
                     getAllDistricts,getDistrictById,
-                    getMNLegBillsbyAuthor,getMNLegBillsbyKeyword,
-                    getHPVIbyChamber,getMNHouseSessionDaily,getTownhallFeed,
-                    get2012ElectionResultsbyChamber,get2012ElectionResultsbyDistrict)
+                    getBillsbyAuthor,getBillsbyKeyword,
+                    getMNHouseSessionDaily,getTownhallFeed,)
+from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
+                    get2012ElectionResultsbyDistrict,)
 from models import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -72,6 +73,12 @@ def get_chamber_name(chamber):
     else:
         body='upper'
     return body
+
+def getSortValue(string):
+    result=True
+    if string=='asc':
+        result=False
+    return result
 
 class GenericHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
@@ -185,10 +192,18 @@ class SessionsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params["sessions"],params["details"]=getSessionNames()
-            params['legislators']=getCurrentLegislators()
-            params['search_page']="True"
-            self.render(bills_search_page, **params)
+            keyword=self.request.get("k")
+            if keyword:
+                sort=self.request.get("s")
+                s=getSortValue(sort)
+                params['keyword']=self.request.get("keyword")
+                params['bills']=getBillsbyKeyword(keyword,s)
+                self.render(bills_search_results_page, **params)
+            else:
+                params["sessions"],params["details"]=getSessionNames()
+                params['legislators']=getCurrentLegislators()
+                params['search_page']="True"
+                self.render(bills_search_page, **params)
 
     def post(self):
         params={}
@@ -200,11 +215,11 @@ class SessionsHandler(GenericHandler):
             self.render(bill_info_page, **params)
         elif submit=='Search by Keyword':
             params['keyword']=self.request.get("keyword")
-            params['bills']=getMNLegBillsbyKeyword(params['keyword'])
+            params['bills']=getBillsbyKeyword(params['keyword'])
             self.render(bills_search_results_page, **params)
         else:
             params['author']=self.request.get("leg")
-            params['bills']=getMNLegBillsbyAuthor(params['author'])
+            params['bills']=getBillsbyAuthor(params['author'])
             self.render(bills_search_results_page, **params)
         
 class BillsHandler(GenericHandler):
@@ -214,9 +229,7 @@ class BillsHandler(GenericHandler):
             self.redirect('/signup')
         else:
             sort=self.request.get('s')
-            d=True
-            if sort=='asc':
-                d=False
+            d=getSortValue(sort)
             params['bills']=getBillNames(path,d)
             self.render(bills_page, **params)
 
@@ -250,7 +263,7 @@ class LegislatureHandler(GenericHandler):
         params={}
         leg_id=self.request.get("leg")
         params['legislator']=getLegislatorByID(leg_id)
-        params['bills']=getMNLegBillsbyAuthor(leg_id)
+        params['bills']=getBillsbyAuthor(leg_id)
         districts=getAllDistricts()
         for d in districts:
             if d['name']==params['legislator']['district']:
@@ -266,12 +279,12 @@ class LegislatorHandler(GenericHandler):
             params['legislator']=getLegislatorByID(leg_id)
             districts=getAllDistricts()
             if params['legislator']['active']:
-                params['bills']=getMNLegBillsbyAuthor(leg_id)
+                params['bills']=getBillsbyAuthor(leg_id)
                 for d in districts:
                     if d['name']==params['legislator']['district']:
                         params['boundary_id']=d['boundary_id']
             else:
-                params['bills']=getMNLegBillsbyAuthor(leg_id,'all')
+                params['bills']=getBillsbyAuthor(leg_id,'all')
             self.render(legislator_info_page, **params)
 
 class AllCommitteesHandler(GenericHandler):

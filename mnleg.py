@@ -1,5 +1,5 @@
-import csv
-import cStringIO
+# import csv
+# import cStringIO
 import json
 import feedparser
 from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
@@ -8,10 +8,10 @@ from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
 apikey_url="apikey="
-senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=0&headers=1'
-house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
-senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
-house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
+# senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=0&headers=1'
+# house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
+# senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
+# house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
 mn_house_session_daily='http://www.house.leg.state.mn.us/rss/sdaily.asp'
 
 mn_townhalls={
@@ -140,75 +140,75 @@ def sendGetRequest(url):
 	else:
 		return None
 
-def fetchSenatehPVIfeed():
-	response = get_contents_of_url(senate_hpvi_feed_url)
-	data=json.loads(response[62:-2])
-	hpvi={}
-	for r in data['table']['rows']:
-		hpvi[r['c'][0]['f']]=r['c'][1]['v']
-	return hpvi
+# def fetchSenatehPVIfeed():
+# 	response = get_contents_of_url(senate_hpvi_feed_url)
+# 	data=json.loads(response[62:-2])
+# 	hpvi={}
+# 	for r in data['table']['rows']:
+# 		hpvi[r['c'][0]['f']]=r['c'][1]['v']
+# 	return hpvi
 
-def fetchHousehPVIfeed():
-	response = get_contents_of_url(house_hpvi_feed_url)
-	data=json.loads(response[62:-2])
-	hpvi={}
-	for r in data['table']['rows']:
-		hpvi[r['c'][0]['v']]=r['c'][1]['v']
-	return hpvi
+# def fetchHousehPVIfeed():
+# 	response = get_contents_of_url(house_hpvi_feed_url)
+# 	data=json.loads(response[62:-2])
+# 	hpvi={}
+# 	for r in data['table']['rows']:
+# 		hpvi[r['c'][0]['v']]=r['c'][1]['v']
+# 	return hpvi
 
-def getHPVIbyChamber(chamber):
-	if chamber=='upper':
-		hpvi=fetchSenatehPVIfeed()
-	else:
-		hpvi=fetchHousehPVIfeed()
-	return hpvi
+# def getHPVIbyChamber(chamber):
+# 	if chamber=='upper':
+# 		hpvi=fetchSenatehPVIfeed()
+# 	else:
+# 		hpvi=fetchHousehPVIfeed()
+# 	return hpvi
 
-def parseCSVfromURL(page,delimiter):
-	csvio = cStringIO.StringIO(page)
-	data = csv.reader(csvio, delimiter=delimiter)
-	return data
+# def parseCSVfromURL(page,delimiter):
+# 	csvio = cStringIO.StringIO(page)
+# 	data = csv.reader(csvio, delimiter=delimiter)
+# 	return data
 
-def fetchSenateElectionResults():
-	response=getFromCache('senate2012elections')
-	if not response:
-		response = get_contents_of_url(senate_2012_election_results)
-		if response:
-			putInCache('senate2012elections',response)
-	response = parseCSVfromURL(response,';')
-	results=[]
-	for r in response:
-		results.append([r[5],r[4],r[12],r[15]," ".join([x.capitalize() for x in r[7].split(" ")]),r[10],r[14],r[13]])
-	return results
+# def fetchSenateElectionResults():
+# 	response=getFromCache('senate2012elections')
+# 	if not response:
+# 		response = get_contents_of_url(senate_2012_election_results)
+# 		if response:
+# 			putInCache('senate2012elections',response)
+# 	response = parseCSVfromURL(response,';')
+# 	results=[]
+# 	for r in response:
+# 		results.append([r[5],r[4],r[12],r[15]," ".join([x.capitalize() for x in r[7].split(" ")]),r[10],r[14],r[13]])
+# 	return results
 
-def fetchHouseElectionResults():
-	response=getFromCache('house2012elections')
-	if not response:
-		response = get_contents_of_url(house_2012_election_results)
-		if response:
-			putInCache('house2012elections',response)
-	response = parseCSVfromURL(response,';')
-	results=[]
-	for r in response:
-		results.append([r[5],r[4],r[12],r[15]," ".join([x.capitalize() for x in r[7].split(" ")]),r[10],r[14],r[13]])
-	return results
+# def fetchHouseElectionResults():
+# 	response=getFromCache('house2012elections')
+# 	if not response:
+# 		response = get_contents_of_url(house_2012_election_results)
+# 		if response:
+# 			putInCache('house2012elections',response)
+# 	response = parseCSVfromURL(response,';')
+# 	results=[]
+# 	for r in response:
+# 		results.append([r[5],r[4],r[12],r[15]," ".join([x.capitalize() for x in r[7].split(" ")]),r[10],r[14],r[13]])
+# 	return results
 
-def get2012ElectionResultsbyChamber(chamber):
-	if chamber=='upper':
-		results=fetchSenateElectionResults()
-	else:
-		results=fetchHouseElectionResults()
-	return results
+# def get2012ElectionResultsbyChamber(chamber):
+# 	if chamber=='upper':
+# 		results=fetchSenateElectionResults()
+# 	else:
+# 		results=fetchHouseElectionResults()
+# 	return results
 
-def get2012ElectionResultsbyDistrict(district,chamber):
-	if chamber=='upper':
-		results=fetchSenateElectionResults()
-	else:
-		results=fetchHouseElectionResults()
-	d=[]
-	for r in results:
-		if r[0]==district:
-			d.append(r)
-	return d
+# def get2012ElectionResultsbyDistrict(district,chamber):
+# 	if chamber=='upper':
+# 		results=fetchSenateElectionResults()
+# 	else:
+# 		results=fetchHouseElectionResults()
+# 	d=[]
+# 	for r in results:
+# 		if r[0]==district:
+# 			d.append(r)
+# 	return d
 
 def getCurrentBills(n=10):
 	data=getFromCache('Current Bills')
@@ -235,7 +235,7 @@ def getDistrictById(district_id):
 	data=getFromCache(district_id)
 	if not data:
 		data=getMNLegDistrictById(district_id)
-		if data:
+		if data and 'shape' in data:
 			new_shape=[]
 	 		for p in data['shape'][0][0]:
 	 			new_shape.append([p[1],p[0]])
@@ -319,6 +319,33 @@ def getLegislatorByID(leg_id):
 			return None
 	return data
 
+def sortBillsByDate(data,sort):
+	bills=[]
+	for d in data:
+		bills.append(d)
+	b=sorted(bills, key=lambda bills: bills['updated_at'] ,reverse=sort)
+	return b
+
+def getBillsbyKeyword(keyword,sort=True):
+	data=getFromCache('query='+keyword)
+	if not data:
+		data = getMNLegBillsbyKeyword(keyword)
+		if data:
+			putInCache('query='+keyword,data)
+		else:
+			return None
+	return sortBillsByDate(data,sort)
+
+def getBillsbyAuthor(author,session='session',sort=True):
+	data=getFromCache('bills='+author+'_'+session)
+	if not data:
+		data = getMNLegBillsbyAuthor(author,session)
+		if data:
+			putInCache('bills='+author+'_'+session,data)
+		else:
+			return None
+	return sortBillsByDate(data,sort)
+
 def getBillById(bill,session):
 	path=session+bill
 	data=getFromCache(path)
@@ -333,7 +360,7 @@ def getBillById(bill,session):
 def getBillNames(session,sort=True):
 	data=getFromCache(session)
 	if not data:
-		data=getMNLegBillsbySession(session)
+		data=getMNLegBillsbySession(session,10)
 		if data:
 			putInCache(session,data)
 		else:
@@ -342,8 +369,8 @@ def getBillNames(session,sort=True):
 	for d in data:
 		n=int(d['bill_id'][3:])
 		bills.append((d,n))
-	bills.sort(key=lambda tup: tup[1],reverse=sort)
-	return bills
+	b=sorted(bills, key=lambda tup: tup[1],reverse=sort)
+	return b
 
 def getSessionNames():
 	data=getFromCache("sessions")
