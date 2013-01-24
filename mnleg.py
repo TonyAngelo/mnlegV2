@@ -120,10 +120,10 @@ def getMNLegBillsbyKeyword(keyword):
 	url=base_url+'bills/?state=mn&q='+keyword+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
-def getMNLegBillsbySession(session,per_page='2000',page='1'):
+def getMNLegBillsbySession(session,per_page=2000,page=1):
 	#http://openstates.org/api/v1/bills/?state=mn&search_window=session&apikey=4a26c19c3cae4f6c843c3e7816475fae
 	session_url='state=mn&search_window=session:'+session+'&'
-	url=base_url+'bills/?'+session_url+'&per_page='+per_page+'&page='+page+'&'+apikey_url+API_KEY
+	url=base_url+'bills/?'+session_url+'&per_page='+str(per_page)+'&page='+str(page)+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
 def getMNLegBillInfobyId(bill,session):
@@ -360,7 +360,7 @@ def getBillById(bill,session):
 def getBillNames(session,sort=True):
 	data=getFromCache(session)
 	if not data:
-		data=getMNLegBillsbySession(session,10)
+		data=getMNLegBillsbySession(session)
 		if data:
 			putInCache(session,data)
 		else:
