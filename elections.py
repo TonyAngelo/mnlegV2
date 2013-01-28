@@ -7,6 +7,28 @@ senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=
 house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
 senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
 house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
+mnleg_district_demo_info='http://www.gis.leg.mn/redist2010/Legislative/L2012/text/'
+
+def fetchDistrictDemoData(district):
+	if district.find('u')>0: # senate district
+		district=district[-2:]
+	else: # house district
+		district=district[-3:].upper()
+	url=mnleg_district_demo_info+district+'.txt'
+	page = get_contents_of_url(url)
+	demographics={}
+	if page:
+		loop=True
+		while loop:
+			w,page=page[:page.find('\n')],page[page.find('\n')+1:]
+			v,page=page[:page.find('\n')],page[page.find('\n')+1:]
+			# y,page=page[:page.find('\n')],page[page.find('\n')+1:]
+			# z,page=page[:page.find('\n')],page[page.find('\n')+1:]
+			# results.append((w+': '+v,y+': '+z))
+			demographics[w]=v
+			if len(page)<=0:
+				loop=False
+	return demographics
 
 def fetchSenatehPVIfeed():
 	response = get_contents_of_url(senate_hpvi_feed_url)

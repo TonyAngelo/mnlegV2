@@ -1,58 +1,21 @@
-# import csv
-# import cStringIO
 import json
-import feedparser
 from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
-					bill_text_remove_markup,getCurrentBillsDateString,getCommitteeMeetings)
+					bill_text_remove_markup,getCurrentBillsDateString,getCommitteeMeetings,
+					convertDateToTimeStamp,parseCommitteeMeetings,convertCommitteeDateStringtoDate,)
+from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
+                    get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
 apikey_url="apikey="
-# senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=0&headers=1'
-# house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
-# senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
-# house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
-mn_house_session_daily='http://www.house.leg.state.mn.us/rss/sdaily.asp'
 
-mn_townhalls={
-	'dfl':['http://www.house.leg.state.mn.us/rss/townhalldfl.asp','DFL town hall meetings - Minnesota House of Representatives'],
-	'gop':['http://www.house.leg.state.mn.us/rss/townhallgop.asp','GOP town hall meetings - Minnesota House of Representatives'],
-}
-
-house_daily_key='Session Daily - Minnesota House of Representatives'
-
-def getFeed(link):
-	return feedparser.parse(link)
-
-def getMNHouseSessionDaily(n=10):
-	global house_daily_key
-	results=[]
-	f=getFromCache(house_daily_key)
-	if not f:
-		f = getFeed(mn_house_session_daily)
-		for i in range(n):
-			if f['entries']:
-				results.append(f['entries'].pop(0))
-		house_daily_key=f['feed']['title']
-		putInCache(house_daily_key,results)
-		return house_daily_key,results
-	else:
-		return house_daily_key,f
-
-def getTownhallFeed(party,n=5):
-	global mn_townhalls
-	results=[]
-	f=getFromCache(mn_townhalls[party][1])
-	if not f:
-		f=getFeed(mn_townhalls[party][0])
-		for i in range(n):
-			if f['entries']:
-				results.append(f['entries'].pop(0))
-		mn_townhalls[party][1]=f['feed']['title']
-		putInCache(mn_townhalls[party][1],results)
-		return mn_townhalls[party][1],results
-	else:
-		return mn_townhalls[party][1],f
+day_of_week={'SUNDAY,':'SUNDAY,',
+             'MONDAY,':'MONDAY,',
+             'TUESDAY,':'TUESDAY,',
+             'WEDNESDAY,':'WEDNESDAY,',
+             'THURSDAY,':'THURSDAY,',
+             'FRIDAY,':'FRIDAY,',
+             'SATURDAY,':'SATURDAY,',}
 
 def getMNLegAllDistricts():
 	#http://openstates.org/api/v1/districts/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
@@ -79,6 +42,7 @@ def getMNLegEventById(event_id):
 	return sendGetRequest(url)
 
 def getMNLegAllCommittees():
+	#http://openstates.org/api/v1/committees/?state=mn&apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'committees/?state=mn&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
@@ -140,76 +104,6 @@ def sendGetRequest(url):
 	else:
 		return None
 
-# def fetchSenatehPVIfeed():
-# 	response = get_contents_of_url(senate_hpvi_feed_url)
-# 	data=json.loads(response[62:-2])
-# 	hpvi={}
-# 	for r in data['table']['rows']:
-# 		hpvi[r['c'][0]['f']]=r['c'][1]['v']
-# 	return hpvi
-
-# def fetchHousehPVIfeed():
-# 	response = get_contents_of_url(house_hpvi_feed_url)
-# 	data=json.loads(response[62:-2])
-# 	hpvi={}
-# 	for r in data['table']['rows']:
-# 		hpvi[r['c'][0]['v']]=r['c'][1]['v']
-# 	return hpvi
-
-# def getHPVIbyChamber(chamber):
-# 	if chamber=='upper':
-# 		hpvi=fetchSenatehPVIfeed()
-# 	else:
-# 		hpvi=fetchHousehPVIfeed()
-# 	return hpvi
-
-# def parseCSVfromURL(page,delimiter):
-# 	csvio = cStringIO.StringIO(page)
-# 	data = csv.reader(csvio, delimiter=delimiter)
-# 	return data
-
-# def fetchSenateElectionResults():
-# 	response=getFromCache('senate2012elections')
-# 	if not response:
-# 		response = get_contents_of_url(senate_2012_election_results)
-# 		if response:
-# 			putInCache('senate2012elections',response)
-# 	response = parseCSVfromURL(response,';')
-# 	results=[]
-# 	for r in response:
-# 		results.append([r[5],r[4],r[12],r[15]," ".join([x.capitalize() for x in r[7].split(" ")]),r[10],r[14],r[13]])
-# 	return results
-
-# def fetchHouseElectionResults():
-# 	response=getFromCache('house2012elections')
-# 	if not response:
-# 		response = get_contents_of_url(house_2012_election_results)
-# 		if response:
-# 			putInCache('house2012elections',response)
-# 	response = parseCSVfromURL(response,';')
-# 	results=[]
-# 	for r in response:
-# 		results.append([r[5],r[4],r[12],r[15]," ".join([x.capitalize() for x in r[7].split(" ")]),r[10],r[14],r[13]])
-# 	return results
-
-# def get2012ElectionResultsbyChamber(chamber):
-# 	if chamber=='upper':
-# 		results=fetchSenateElectionResults()
-# 	else:
-# 		results=fetchHouseElectionResults()
-# 	return results
-
-# def get2012ElectionResultsbyDistrict(district,chamber):
-# 	if chamber=='upper':
-# 		results=fetchSenateElectionResults()
-# 	else:
-# 		results=fetchHouseElectionResults()
-# 	d=[]
-# 	for r in results:
-# 		if r[0]==district:
-# 			d.append(r)
-# 	return d
-
 def getCurrentBills(n=10):
 	data=getFromCache('Current Bills')
 	if not data:
@@ -219,7 +113,6 @@ def getCurrentBills(n=10):
 		else:
 			return None
 	return data
-
 
 def getAllDistricts():
 	data=getFromCache('districts')
@@ -235,39 +128,84 @@ def getDistrictById(district_id):
 	data=getFromCache(district_id)
 	if not data:
 		data=getMNLegDistrictById(district_id)
-		if data and 'shape' in data:
-			new_shape=[]
-	 		for p in data['shape'][0][0]:
-	 			new_shape.append([p[1],p[0]])
-	 		data['shape'][0][0]=new_shape
+		if data: 
+			if 'shape' in data:
+				new_shape=[]
+				data['district_map']='True'
+		 		for p in data['shape'][0][0]:
+		 			new_shape.append([p[1],p[0]])
+		 		data['shape'][0][0]=new_shape
+
 	 		legislator=getLegislatorByDistrict(data['name'])
 	 		if legislator!=None:
 		 		data['legislator']=legislator
+
+		 	demo=fetchDistrictDemoData(data['boundary_id'])
+		 	if demo!=None:
+		 		data['district_demo']=demo
+
+		 	election=get2012ElectionResultsbyDistrict(data['name'],data['chamber'])
+		 	if election!=None:
+		 		data['leg_results']=election
+
+		 	hpvi=getHPVIbyChamber(data['chamber'])
+		 	if hpvi!=None:
+		 		data['hpvi']=hpvi
+
 	 		putInCache(district_id,data)
 		else:
 			return None
 	return data
 
 def getAllDistrictsByID(chamber):
-	data=getFromCache('all_districts')
-	if not data:
+	all_data=[]
+	if chamber=='lower':
+		data1=getFromCache(chamber+'_districts1')
+		data2=getFromCache(chamber+'_districts2')
+		if data1 and data2:
+			all_data=data1+data2
+	else:
+		all_data=getFromCache(chamber+'_districts')
+	if not all_data:
 		data=getAllDistricts()
 		all_data=[]
 		for d in data:
 			if d['chamber']==chamber:
 				all_data.append(getDistrictById(d['boundary_id']))
-		putInCache(chamber+'_districts',all_data)
-	return all_data
+		if chamber=='lower':
+			putInCache(chamber+'_districts1',all_data[:len(all_data)/2])
+			putInCache(chamber+'_districts2',all_data[len(all_data)/2:])
+		else:
+			putInCache(chamber+'_districts',all_data)
+	hpvi=getHPVIbyChamber(chamber)
+	return all_data,hpvi
 
 def getAllEvents():
-	data=getFromCache('events')
-	if not data:
+	events=getFromCache('events')
+	if not events:
+		events=[]
 		data=getMNLegAllEvents()
 		if data:
-	 		putInCache('events',data)
-		else:
-			return None
-	return data
+	 		for d in data:
+		 		event={
+		 		'day':int(d['when'][8:10]),
+		 		'month':int(d['when'][5:7]),
+		 		'year':int(d['when'][:4]),
+		 		'hour':int(d['when'][11:13]),
+		 		'min':int(d['when'][14:16]),
+		 		'type':d['type'],
+		 		'title':d['description'],
+		 		'description':d['description'],
+		 		'url':'/events/'+d['id']}
+		 		events.append(event)
+		meetings=getAllCommitteeMeetingsAsEvents()
+		if meetings:
+			for m in meetings:
+				events.append(m)
+	 	putInCache('events',events)
+		# else:
+		# 	return None
+	return events
 
 def getEventById(event_id):
 	data=getFromCache(event_id)
@@ -289,15 +227,76 @@ def getAllCommittees():
 			return None
 	return data
 
-def getCommitteeById(com_id):
+def getCommitteeById(com_id,parsed=False):
 	data=getFromCache(com_id)
 	if not data:
 		data=getMNLegCommitteeById(com_id)
 		putInCache(com_id,data)
 		if not data:
 			return None
-	meetings=getCommitteeMeetings(data['sources'][0]['url'])
+	if parsed:
+		meetings=parseCommitteeMeetings(data['sources'][0]['url'])
+	else:
+		meetings=getCommitteeMeetings(data['sources'][0]['url'])
 	return data,meetings
+
+def getAllCommitteeMeetings(parsed=False):
+	coms=getAllCommittees()
+	meetings=[]
+	for c in coms:
+		data,meet=getCommitteeById(c['id'],parsed)
+		meetings.append((c['id'],meet))
+	return meetings
+
+def getAllCommitteeMeetingsAsEvents():
+	meetings=getFromCache('all_committee_meetings')
+	if not meetings:
+		data=getAllCommitteeMeetings(True)
+		meetings=[]
+		for com in data:
+ 			for l in com[1]:
+ 				if l in day_of_week:
+ 					count=0
+ 					date=''
+		 			time=''
+		 			title_count=-1
+		 			room_count=-1
+		 			chair_count=-1
+		 			room=''
+		 			chair=''
+		 			event={}
+		 		else:
+		 			count+=1
+
+		 		if count==1:
+		 			date=l
+		 		elif count==2:
+		 			time=l
+		 			f=convertCommitteeDateStringtoDate(date+' '+time)
+		 			if f!=None:
+		 				event['day']=f.tm_mday
+	 					event['month']=f.tm_mon
+	 					event['year']=f.tm_year
+	 					event['hour']=f.tm_hour
+	 					event['min']=f.tm_min
+	 					event['type']='committee meeting'
+	 					event['url']='/committees/'+com[0]
+	 			elif l=='Room:':
+	 				room_count=count+1
+	 			elif room_count==count:
+	 				room=l
+	 			elif l=='Chair:' or l=='Chairs':
+	 				chair_count=count+1
+	 			elif chair_count==count:
+	 				chair=l
+	 			elif l=='Agenda:':
+	 				title_count=count+1
+	 			elif title_count==count:
+	 				event['title']=l
+	 				event['description'] = 'Location: '+room+' Chair: '+chair
+	 				meetings.append(event)
+ 		putInCache('all_committee_meetings',meetings)
+	return meetings
 
 def getCurrentLegislators():
 	data=getFromCache('legislators')
@@ -386,5 +385,3 @@ def getSessionNames():
 		sessions.append(s)
 	sessions.sort(reverse=True)
 	return sessions,session_details
-
-

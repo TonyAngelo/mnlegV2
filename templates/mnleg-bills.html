@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script type="text/javascript">
+	$(function() {
+	    $( "#bills-tabs" ).tabs();
+	});
+</script>
 
 <div class='breadcrumb'><a href='/bills'>bills</a> > {{path}}</div>
 <br>

@@ -1,7 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<script type="text/javascript">
+  $(function() {
+    $( ".chambers" ).button();
+  });
+	$(function() {
+    var currentLegs = [
+        {% if search_page %}{% for l in legislators %}
+        {label:'{{l.first_name}} {{l.last_name}}',
+        value:'{{l.leg_id}}',},
+        {% endfor %}{% endif %} 
+      ];
+      $( "#legs" ).autocomplete({
+        source: currentLegs
+      });
+    });
+</script>
 <a class="chambers" href="/legislators?q=senate">Senate</a>
 <a class="chambers" href="/legislators?q=house">House</a>
 
@@ -16,12 +31,12 @@
 <table><tr><td width="400px" valign="top">
   <h3>{{chamber_name}} Democrats</h3>
   <section id="photos">
-    {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='D' and l.photo_url %}<a href='/legislators/{{l.id}}'><img title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="http://d3tg302iyp0q7r.cloudfront.net/{{l.leg_id}}_thumb.jpg" width="50px"></a>{% endif %}{% endfor %}
+    {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='D' and l.photo_url %}<a href='/legislators/{{l.id}}'><img width='50px' title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{l.leg_id}}.jpg"></a>{% endif %}{% endfor %}
 	</section>
 </td><td width="400px" valign="top">
 	<h3>{{chamber_name}} Republicans</h3>
   <section id="photos">
-	 {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='R' and l.photo_url %}<a href='/legislators/{{l.id}}'><img title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="http://d3tg302iyp0q7r.cloudfront.net/{{l.leg_id}}_thumb.jpg" width="50px"></a>{% endif %}{% endfor %}
+	 {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='R' and l.photo_url %}<a href='/legislators/{{l.id}}'><img width='50px' title="{{l.first_name}} {{l.last_name}}" alt="{{l.first_name}} {{l.last_name}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{l.leg_id}}.jpg"></a>{% endif %}{% endfor %}
   </section>
 </td></tr></table>
 

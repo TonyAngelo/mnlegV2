@@ -2,79 +2,22 @@
 <html>
 <head>
   <title>MN Leg Info</title>
-  	<meta charset="utf-8">
+  <meta charset="utf-8">
 	<link type="text/css" rel="stylesheet" href="/static/main.css" />
-  	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
-	<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+	<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
 	<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-	<script>
-		$(function() {
-		    $( "#bills-tabs" ).tabs();
-		});
-    $(function() {
-      $( "#accordion" ).accordion({
-        heightStyle: "content",
-        collapsible: true
-      });
-    });
-    $(function() {
-      $( ".chambers" ).button();
-    });
-		$(function() {
-		    $( "#committee-tabs" ).tabs();
-		});
-    $(function() {
-    var currentLegs = [
-        {% if search_page %}{% for l in legislators %}
-        {label:'{{l.first_name}} {{l.last_name}}',
-        value:'{{l.leg_id}}',},
-        {% endfor %}{% endif %} 
-      ];
-      $( "#legs" ).autocomplete({
-        source: currentLegs
-      });
-    });
-  	</script>
-
-{% if district_map %}
-	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
-    <style type="text/css">
-      html, body {
-        height: 100%;
-        /*margin: 0;
-        padding: 0;*/
-      }
-
-      #map_canvas {
-        height: 100%;
-      }
-
-      @media print {
-        html, body {
-          height: auto;
-        }
-
-        #map_canvas {
-          height: 650px;
-        }
-      }
-    </style>
 </head>
-
+{% if district_map %}
 <body  onload="initialize()">
 {% else %}
-</head>
 <body>
 {% endif %}
   {% include 'header.html' %}
-    
   {% block content %}
   {% endblock %}
-
   {% include 'footer.html' %}
-
 </body>
-
 </html>
 

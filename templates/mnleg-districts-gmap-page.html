@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript">
+    
+    $(function() {
+      $( ".chambers" ).button();
+    });
 
     var map;
     var infoWindow;
@@ -41,7 +45,7 @@
           	district.setMap(map);
             infowindow = new google.maps.InfoWindow();
             google.maps.event.addListener(district, 'click', function(evt) {
-              var contentString = ('<table><tr><td><img width="80px" src="{{d["legislator"][0]["photo_url"]}}"></td><td><b>{% if d["chamber"]=="lower" %}<a href="/districts/{{d["boundary_id"]}}">House District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Representative {% else %}<a href="/districts/{{d["boundary_id"]}}">Senate District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Senator {% endif %}{{d["legislator"][0]["first_name"]}} {{d["legislator"][0]["last_name"]}}<br>{{d["legislator"][0]["party"]}}</td></tr></table>');
+              var contentString = ('<table><tr><td><img width="80px" src="https://s3.amazonaws.com/mnleginfo/leg/{{d["legislator"][0]["leg_id"]}}.jpg"></td><td><b>{% if d["chamber"]=="lower" %}<a href="/districts/{{d["boundary_id"]}}">House District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Representative {% else %}<a href="/districts/{{d["boundary_id"]}}">Senate District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Senator {% endif %}{{d["legislator"][0]["first_name"]}} {{d["legislator"][0]["last_name"]}}<br>{{d["legislator"][0]["party"]}}</td></tr></table>');
               infowindow.setContent(contentString);
               infowindow.setPosition(evt.latLng);
               infowindow.open(map);
@@ -49,6 +53,27 @@
         {% endfor %}
       }
     </script>
+    <style type="text/css">
+      html, body {
+        height: 100%;
+        /*margin: 0;
+        padding: 0;*/
+      }
+
+      #map_canvas {
+        height: 100%;
+      }
+
+      @media print {
+        html, body {
+          height: auto;
+        }
+
+        #map_canvas {
+          height: 650px;
+        }
+      }
+    </style>
 
 <a class="chambers" href="/districts?q=senate">Senate</a>
 <a class="chambers" href="/districts?q=house">House</a>

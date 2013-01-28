@@ -24,20 +24,22 @@ from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_ht
 from mnleg import (getSessionNames,getBillNames,getBillById,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
-                    getAllCommittees,getCommitteeById,
+                    getAllCommittees,getCommitteeById,getAllCommitteeMeetingsAsEvents,
                     getAllEvents,getEventById,getCurrentBills,
                     getAllDistricts,getDistrictById,
-                    getBillsbyAuthor,getBillsbyKeyword,
-                    getMNHouseSessionDaily,getTownhallFeed,)
+                    getBillsbyAuthor,getBillsbyKeyword,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
-                    get2012ElectionResultsbyDistrict,)
+                    get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
+from feeds import getMNHouseSessionDaily,getTownhallFeed
 from models import User
 
+# set up jinja templates
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True,
                                extensions=['jinja2.ext.autoescape'])
 
+# define template pages
 main_page="front.html"
 sessions_page="mnleg-sessions.html"
 bills_page="mnleg-bills.html"
@@ -47,19 +49,21 @@ bill_info_page="mnleg-bill-info.html"
 current_legislators_page="mnleg-current-legislators.html"
 all_committees_page="mnleg-current-committees.html"
 committee_page="mnleg-committee.html"
-all_events_page="mnleg-events-page.html"
+all_events_page="mnleg-events-page-calender-gcal.html"
 event_page="mnleg-event.html"
 legislator_info_page="mnleg-legislator-info.html"
+districts_page="mnleg-districts-page.html"
 all_districts_page="mnleg-districts-gmap-page.html"
 district_page="mnleg-district-gmap.html"
 signup_page="signup.html"
 login_page="login.html"
 thankyou_page="thankyou.html"
 
+# misc strings
 sign_up_subject="Email from mnleg info site"
 sign_up_body="A new person has signed up for the site, their information is "
 
-
+# misc functions
 def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
@@ -80,6 +84,7 @@ def getSortValue(string):
         result=False
     return result
 
+# generic page handler
 class GenericHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -128,55 +133,7 @@ class GenericHandler(webapp2.RequestHandler):
         uid=self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
 
-# class JPEGHandler(webapp2.RequestHandler):
-#     def write_image(self,image):
-#         self.response.headers['Content-Type'] = 'image/jpeg'
-#         self.response.out.write(image)
-
-# class Image(JPEGHandler):
-#     def get(self,img_id):
-#         p = getFromCache('leg_photo_'+img_id)
-#         if p:
-#             self.write_image(p.photo)
-#         else:
-#             p = LegislatorPhoto.by_leg_id(img_id)
-#             if p:
-#                 putInCache('leg_photo_'+img_id,p,0)
-#                 self.write_image(p.photo)
-#             else:
-#                 l=getLegislatorByID(img_id)
-#                 if l:
-#                     url=l['photo_url']
-#                     p=LegislatorPhoto.create_photo(img_id,url)
-#                     p.put()
-#                     putInCache('leg_photo_'+img_id,p,0)
-#                     self.write_image(p.photo)
-#                 else:
-#                     self.error(404)
-
-# class Thumbnail(JPEGHandler):
-#     def get(self,img_id):
-#         t = getFromCache('leg_photo_thumb_'+img_id)
-#         if t:
-#             self.write_image(t)
-#         else:
-#             t = LegislatorPhoto.get_thumbnail(img_id)
-#             if t:
-#                 putInCache('leg_photo_thumb_'+img_id,t,0)
-#                 self.write_image(t)
-#             else:
-#                 l=getLegislatorByID(img_id)
-#                 if l:
-#                     url=l['photo_url']
-#                     p=LegislatorPhoto.create_photo(img_id,url)
-#                     p.put()
-#                     putInCache('leg_photo_'+img_id,p,0)
-#                     t = p.get_thumbnail(img_id)
-#                     putInCache('leg_photo_thumb_'+img_id,t,0)
-#                     self.write_image(t)
-#                 else:
-#                     self.error(404)
-
+# page handlers
 class MainHandler(GenericHandler):
     def get(self):
         params=self.check_login("/")
@@ -326,11 +283,18 @@ class EventHandler(GenericHandler):
 class AllDistrictsHandler(GenericHandler):
     def get(self):
         params=self.check_login('districts')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            self.render(districts_page, **params)
+
+class ChamberDistrictsHandler(GenericHandler):
+    def get(self,chamber):
+        params=self.check_login('districts/'+chamber)
         page=''
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            chamber=self.request.get("q")
             if chamber=="house":
                 params['district_map']='lower'
                 p1=getFromCache(chamber+'_districts_page1')
@@ -341,8 +305,7 @@ class AllDistrictsHandler(GenericHandler):
                 params['district_map']='upper'
                 page=getFromCache(chamber+'_districts_page')
             if not page:
-                params['districts']=getAllDistrictsByID(params['district_map'])
-                params['hpvi']=getHPVIbyChamber(params['district_map'])
+                params['districts'],params['hpvi']=getAllDistrictsByID(params['district_map'])
                 self.districts_render(chamber, **params)
             else:
                 self.write(page)
@@ -356,25 +319,7 @@ class DistrictHandler(GenericHandler):
             data=getDistrictById(district_id)
             params['data']=data
             params['district_map']='True'
-            params['leg_results']=get2012ElectionResultsbyDistrict(data['name'],data['chamber'])
-            params['hpvi']=getHPVIbyChamber(data['chamber'])
             self.render(district_page, **params)
-
-# class ElectionsHandler(GenericHandler):
-#     def get(self):
-#         #r=get2012ElectionResultsbyChamber('upper')
-#         r=get2012ElectionResultsbyDistrict('49','upper')
-#         self.write(r[0][1])
-#         self.write('<br>')
-#         self.write('Precincts: '+r[0][2])
-#         self.write('<br>')
-#         self.write("Total Votes: "+r[0][3])
-#         self.write('<br>')
-#         self.write('<br>')
-#         for i in r:
-#             self.write(i[4]+" ("+i[5]+") "+i[6]+'%')
-#             self.write('<br>')
-
 
 class SignupPage(GenericHandler):
     def get(self):
@@ -444,17 +389,12 @@ class ClearCachePage(GenericHandler):
         clear_cache(None)
         self.redirect("/")
 
-
+# paths
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/bills/?', SessionsHandler),
-    # ('/photos/(MNL[0-9]+)/?', Image),
-    # ('/thumbs/(MNL[0-9]+)/?', Thumbnail),
-    # ('/elections/?', ElectionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
-    # ('/legislators/?((?:senators/?)|(?:representatives/?))?', LegislatureHandler),
-    # ('/legislators/((?:senators)|(?:representatives))/(MNL[0-9]+)/?', LegislatorHandler),
     ('/legislators/?', LegislatureHandler),
     ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
@@ -462,9 +402,8 @@ app = webapp2.WSGIApplication([
     ('/events/?', AllEventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?', AllDistrictsHandler),
+    ('/districts/(house|senate)/?', ChamberDistrictsHandler),
     ('/districts/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
-    # ('/districts/?((?:senate/?)|(?:house/?))?', AllDistrictsHandler),
-    # ('/districts/((?:senate)|(?:house))/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
     ('/thankyou/?', ThankYouPage),
     ('/signup/?', SignupPage),
     ('/login/?', LoginPage),

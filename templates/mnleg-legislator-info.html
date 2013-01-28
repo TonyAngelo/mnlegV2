@@ -14,12 +14,12 @@
 	{% endif %}
 	{{legislator.first_name}} {% if legislator.nickname %}"{{legislator.nickname}}"{% endif %} {{legislator.last_name}}
 </h2>
-<table>
+<table width="800px">
 	<tr><td>
 		{% if legislator.chamber=='lower' %}
-			<img width="200px" src='http://d3tg302iyp0q7r.cloudfront.net/{{legislator.leg_id}}.jpg'>
+			<img width="200px" src='http://d3tg302iyp0q7r.cloudfront.net/leg/{{legislator.leg_id}}.jpg'>
 		{% else %}
-			<img src='http://d3tg302iyp0q7r.cloudfront.net/{{legislator.leg_id}}.jpg'>
+			<img src='http://d3tg302iyp0q7r.cloudfront.net/leg/{{legislator.leg_id}}.jpg'>
 		{% endif %}
 	</td><td>
 <strong>{{legislator.party}}</strong><br><br>
@@ -39,6 +39,14 @@
 		{% if c.position and c.position!="member" %}
 			- <em>{{c.position}}</em>
 		{% endif %}
+		<br>
+	{% endfor %}
+{% endif %}
+</td><td align="right" valign="top" width="300px">
+{% if legislator.old_roles %}
+	<strong>Past Legislative Service:</strong><br>
+	{% for o in legislator.old_roles %}
+		{{o}} {% if legislator.old_roles[o][0].chamber=='upper' %}Senate{% else %}House{% endif %} District {{legislator.old_roles[o][0].district}} {% if legislator.old_roles[o][0].party!=legislator.party %}(legislator.old_roles[o][0].party[0]){% endif %}
 		<br>
 	{% endfor %}
 {% endif %}

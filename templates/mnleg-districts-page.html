@@ -4,17 +4,8 @@
 
 <h2>Minnesota Legislative Districts</h2>
 
-<div id="district-tabs">
-  <ul>
-    <li><a href="#district-tabs-1">Senate</a></li>
-    <li><a href="#district-tabs-2">House</a></li>
-  </ul>
-  <div id="district-tabs-1">
-    <p>{% for d in districts %}{% if d.chamber=='upper' %}<a href='/districts/{{d.boundary_id}}'>{{d.name}}</a> - {% endif %}{% endfor %}</p>
-  </div>
-  <div id="district-tabs-2">
-    <p>{% for d in districts %}{% if d.chamber=='lower' %}<a href='/districts/{{d.boundary_id}}'>{{d.name}}</a> - {% endif %}{% endfor %}</p>
-  </div>
-</div>
+<a href="/districts/senate">Complete Seante Map</a><br>
+<a href="/districts/house">Complete House Map</a><br>
+<em>these maps can take a minute to load</em>
 
 {% endblock %}

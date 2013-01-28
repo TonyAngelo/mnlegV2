@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script type="text/javascript">
+	$(function() {
+    var currentLegs = [
+        {% if search_page %}{% for l in legislators %}
+        {label:'{{l.first_name}} {{l.last_name}}',
+        value:'{{l.leg_id}}',},
+        {% endfor %}{% endif %} 
+      ];
+      $( "#legs" ).autocomplete({
+        source: currentLegs
+      });
+    });
+</script>
 
 <table><tr><td width="400" valign="top">
 <h2>Bill Search</h2>

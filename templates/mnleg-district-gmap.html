@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript">
 
     var map;
@@ -64,7 +64,7 @@
 
       function showInfo(event) {
 
-        var contentString = ('{% if leg_results %}<table><tr><td><strong>2012 Election Results<br>{% if data.legislator[0].chamber=="lower" %}House{% else %}Senate{% endif %} District {{data.name}}<br>Total Votes:</strong> {{leg_results[0][3]}}<br><strong>Precincts:</strong> {{leg_results[0][2]}}<br><strong>hPVI:</strong> {{hpvi[data.name]}}<br><br>{% for l in leg_results %}<strong>{{l[4]}}</strong> ({{l[5]}}): {{l[6]}}%<br>{% endfor %}{% else %}Election results not available{% endif %}');
+        var contentString = ('{% if data.leg_results %}<table><tr><td><strong>2012 Election Results<br>{% if data.legislator[0].chamber=="lower" %}House{% else %}Senate{% endif %} District {{data.name}}<br>Total Votes:</strong> {{data.leg_results[0][3]}}<br><strong>Precincts:</strong> {{data.leg_results[0][2]}}<br><strong>hPVI:</strong> {{data.hpvi[data.name]}}<br><br>{% for l in data.leg_results %}<strong>{{l[4]}}</strong> ({{l[5]}}): {{l[6]}}%<br>{% endfor %}{% else %}Election results not available{% endif %}');
 
         // Replace our Info Window's content and position
         infowindow.setContent(contentString);
@@ -75,6 +75,27 @@
 
 
     </script>
+    <style type="text/css">
+      html, body {
+        height: 100%;
+        /*margin: 0;
+        padding: 0;*/
+      }
+
+      #map_canvas {
+        height: 100%;
+      }
+
+      @media print {
+        html, body {
+          height: auto;
+        }
+
+        #map_canvas {
+          height: 650px;
+        }
+      }
+    </style>
 
 <div class='breadcrumb'><a href='/districts{% if data.chamber=='lower' %}?q=house{% endif %}'>districts</a> > {{data.name}}</div>
 
@@ -88,5 +109,24 @@
 click district for details<br><br>
 <div id="map_canvas" style="width:800px;height:500px;"></div><br>
 ne: {{data.bbox[1][0]}},{{data.bbox[1][1]}} sw: {{data.bbox[0][0]}}, {{data.bbox[0][1]}}
+<br><br>
+<table>
+  <caption><h3>District Demographics</h3></caption>
+  <tr><td width='100px'></td><td width='100px'><strong>Total</strong></td><td width='100px'><strong>%</strong></td><td width='100px'><strong>18+</strong></td><td width='100px'><strong>18+ %</strong></td></tr>
 
+  <tr><td>White: </td><td>{{data.district_demo['White']}}</td><td>{{data.district_demo['Percentage White']}}</td><td>{{data.district_demo['18+ White']}}</td><td>{{data.district_demo['Percent 18+ White']}}</td></tr>
+
+  <tr><td>Minority: </td><td>{{data.district_demo['Total Minority']}}</td><td>{{data.district_demo['Percent Total Minority']}}</td><td>{{data.district_demo['18+ Minority']}}</td><td>{{data.district_demo['Percent 18+ Minority']}}</td></tr>
+
+  <tr><td>Black: </td><td>{{data.district_demo['Black']}}</td><td>{{data.district_demo['Percent Black']}}</td><td>{{data.district_demo['18+ Black']}}</td><td>{{data.district_demo['Percent 18+ Black']}}</td></tr>
+
+  <tr><td>Hispanic: </td><td>{{data.district_demo['Hispanic']}}</td><td>{{data.district_demo['Percent Hispanic']}}</td><td>{{data.district_demo['18+ Hispanic']}}</td><td>{{data.district_demo['Percent 18+ Hispanic']}}</td></tr>
+
+  <tr><td>Indian: </td><td>{{data.district_demo['Indian']}}</td><td>{{data.district_demo['Percent Indian']}}</td><td>{{data.district_demo['18+ Indian']}}</td><td>{{data.district_demo['Percent 18+ Indian']}}</td></tr>
+
+  <tr><td>Asian: </td><td>{{data.district_demo['Asian']}}</td><td>{{data.district_demo['Percent Asian']}}</td><td>{{data.district_demo['18+ Asian']}}</td><td>{{data.district_demo['Percent 18+ Asian']}}</td></tr>
+
+  <tr><td><strong>Total</strong>: </td><td><strong>{{data.district_demo['Population']}}</strong></td><td></td><td></td><td></td></tr>
+</table>
+<br><br>
 {% endblock %}

@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<script type="text/javascript">
+	$(function() {
+      $( "#accordion" ).accordion({
+        heightStyle: "content",
+        collapsible: true
+      });
+    });
+</script>
 <div class='breadcrumb'><a href='/bills'>bills</a> > <a href="/bills/{{bill_info.session}}">{{bill_info.session}}</a> > {{bill_info.bill_id}}</div>
 
 <h2>{{bill_info.bill_id}} - {{bill_info.title}}</h2>

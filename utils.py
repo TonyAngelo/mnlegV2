@@ -5,6 +5,7 @@ import random
 import cgi
 import re
 import urllib2
+import time
 import datetime
 from xml.dom import minidom
 from google.appengine.api import memcache
@@ -19,13 +20,38 @@ var_re=re.compile(r'<var>[0-9]+\.[0-9]+</var>')
 markup_id_re=re.compile(r'<a id="pl\.[0-9]+\.[0-9]+"></a>')
 anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
 
-#<a id="bill.0.1.0"></a> 
-
 SECRET = 'somesecretshityo'
 IP_URL="http://api.hostip.info/?ip="
 
 def resize_image(image,width=0,height=0):
     return images.resize(image, width, height)
+
+def convertDateToTimeStamp(date):
+    date=substitute_char(date,'-','')
+    date=substitute_char(date,':','')
+    try:
+        d=datetime.datetime.strptime(date, '%Y%m%d %H%M%S').date()
+        t=int(time.mktime(d.timetuple()))
+        return str(t)+'000'
+    except Exception:
+        return None
+
+def convertDateTimeStringtoDateTime(date):
+    try:
+        d = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+        return d
+    except Exception:
+        return None
+
+def convertCommitteeDateStringtoDate(time_string):
+    try:
+        t = time.strptime(time_string,'%B %d, %Y %I:%M %p')
+        return t
+    except Exception:
+        return None
+
+def getMonthNumberFromString(s):
+    return time.strptime(s,'%B').tm_mon
 
 def getTodaysDate():
     return datetime.date.today()
@@ -40,9 +66,24 @@ def getCurrentBillsDateString():
 
 def getCommitteeMeetings(url):
     response=get_contents_of_url(url)
-    soup=BeautifulSoup(response)
-    meeting_text = soup.find_all('div','leg_col1of3-Last')
-    return meeting_text[0]
+    if response!=None:
+        soup=BeautifulSoup(response)
+        meeting_text = soup.find_all('div','leg_col1of3-Last')
+        if meeting_text[0]:
+            return meeting_text[0]
+    return None
+
+def parseCommitteeMeetings(url):
+    response=get_contents_of_url(url)
+    if response!=None:
+        soup=BeautifulSoup(response)
+        meeting_text = soup.find_all('div','leg_col1of3-Last')
+        if meeting_text[0]:
+            if meeting_text[0].p.p:
+                m=meeting_text[0].p.p
+                return [text for text in m.stripped_strings]
+            return meeting_text[0]
+    return None
 
 def getBillText(url):
     bill_page=get_contents_of_url(url)
@@ -79,19 +120,12 @@ def get_contents_of_url(url):
     try:
         content=urllib2.urlopen(url).read()
         return content
-    # except urllib2.URLError:
-    #     return None
-    # except urllib2.HTTPError:
-    #     return None
     except urllib2.HTTPError, e:
         #checksLogger.error('HTTPError = ' + str(e.code))
         return None
     except urllib2.URLError, e:
         #checksLogger.error('URLError = ' + str(e.reason))
         return None
-    # except httplib.HTTPException, e:
-    #     checksLogger.error('HTTPException')
-    #     return None
     except Exception:
         #import traceback
         #checksLogger.error('generic exception: ' + traceback.format_exc())

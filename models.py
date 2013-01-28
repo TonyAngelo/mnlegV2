@@ -1,6 +1,30 @@
 from google.appengine.ext import db
 
-from utils import make_pw_hash,valid_pw,get_coords
+from utils import make_pw_hash,valid_pw,get_coords,convertDateTimeStringtoDateTime
+
+def events_key(name = 'default'):
+    return db.Key.from_path('events', name)
+
+class Event(db.Model):
+    title = db.StringProperty(required=True)
+    description = db.TextProperty()
+    time = db.DateTimeProperty(required=True)
+    location = db.TextProperty()
+    url = db.StringProperty()
+    event_type = db.StringProperty()
+
+    @classmethod
+    def create_event(cls,title,description,time_string,location,event_id,event_type):
+        time=convertDateTimeStringtoDateTime(time_string)
+        url='/events/'+event_id
+        return Event(parent = events_key(),
+                    title=title,
+                    description=description,
+                    time=time,
+                    location=location,
+                    url=url,
+                    event_type=event_type)
+
 
 def users_key(name = 'default'):
     return db.Key.from_path('users', name)
@@ -12,7 +36,6 @@ class User(db.Model):
     email=db.StringProperty(required=True)
     valid=db.StringProperty(required=True)
     user_ip=db.StringProperty()
-    #coords=db.GeoPtProperty()
 
     @classmethod
     def by_id(cls, uid):
@@ -26,13 +49,11 @@ class User(db.Model):
     @classmethod
     def register(cls,name,pw,email,user_ip,valid="True"):
         code=make_pw_hash(name,pw)
-        #coords=get_coords(user_ip)
         return User(parent = users_key(),
         			name=name,
                     code=code,
                     email=email,
                     user_ip=user_ip,
-                    #coords=coords,
                     valid=valid)
 
     @classmethod

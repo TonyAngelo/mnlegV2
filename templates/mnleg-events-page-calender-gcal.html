@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<link rel='stylesheet' type='text/css' href='static/fullcalendar.css' />
+<link rel='stylesheet' type='text/css' href='static/fullcalendar.print.css' media='print' />
+<script type='text/javascript' src='js/jquery-ui-1.8.23.custom.min.js'></script>
+<script type='text/javascript' src='js/fullcalendar.min.js'></script>
+<script type='text/javascript'>
+
+	$(document).ready(function() {
+	
+		var date = new Date();
+		var d = date.getDate();
+		var m = date.getMonth();
+		var y = date.getFullYear();
+		
+		$('#calendar').fullCalendar({
+			header: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'month,basicWeek,basicDay'
+			},
+			defaultView: 'basicWeek',
+			editable: false,
+			events: [
+			{% for e in events %}
+				{
+					title: '{{e.title}}',
+					start: new Date(y, {{e.month}}-1, {{e.day}}, {{e.hour}}, {{e.min}}),
+					url: '{{e.url}}',
+					allDay: false,
+					{% if e.type!='committee meeting' %}
+						backgroundColor:'#036C03',
+						borderColor:'#036C03',
+					{% endif %}
+				},
+			{% endfor %}
+			]
+		});
+		
+	});
+
+</script>
+<style type='text/css'>
+
+	
+
+	#calendar {
+		width: 800px;
+		margin: 0 auto;
+		}
+
+</style>
+
+<div id='calendar'></div>
+
+{% endblock %}
