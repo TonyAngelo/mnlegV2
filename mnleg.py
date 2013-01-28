@@ -1,7 +1,8 @@
 import json
 from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
 					bill_text_remove_markup,getCurrentBillsDateString,getCommitteeMeetings,
-					convertDateToTimeStamp,parseCommitteeMeetings,convertCommitteeDateStringtoDate,)
+					convertDateToTimeStamp,parseCommitteeMeetings,convertCommitteeDateStringtoDate,
+					getSenateCommittees,merge_dict,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 
@@ -220,7 +221,9 @@ def getEventById(event_id):
 def getAllCommittees():
 	data=getFromCache('committees')
 	if not data:
-		data=getMNLegAllCommittees()
+		house=getMNLegAllCommittees()
+		senate=getSenateCommittees()
+		data=senate+house
 		if data:
 	 		putInCache('committees',data)
 		else:

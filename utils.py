@@ -22,6 +22,7 @@ anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
 
 SECRET = 'somesecretshityo'
 IP_URL="http://api.hostip.info/?ip="
+mn_senate_base='http://www.senate.leg.state.mn.us'
 
 def resize_image(image,width=0,height=0):
     return images.resize(image, width, height)
@@ -64,6 +65,47 @@ def getCurrentBillsDateString():
     d=offsetDatebyDays(getTodaysDate(),4)
     return str(d.year)+"-"+str(d.month)+"-"+str(d.day)
 
+def getSenateCommitteeMembers(url):
+    pass
+
+def getSenateCommitteeSchedule(url):
+    pass
+
+def getSenateCommitteeAV(url):
+    pass
+
+def getCommitteeIDFromURL(url):
+    pass
+
+def getSenateCommittees():
+    response=get_contents_of_url(mn_senate_base+'/committees/')
+    if response!=None:
+        soup=BeautifulSoup(response)
+        info = soup.find_all('div','HRDFlyer')
+        links = links=info[0].find_all('a')
+        name=''
+        committees=[]
+        count=0
+        for l in links:
+            if l.text.find('Members')>=0:
+                members=getSenateCommitteeMembers(l['href'])
+            elif l.text.find('Schedule')>=0:
+                schedule=getSenateCommitteeSchedule(l['href'])
+            elif l.text.find('Audio/Video')>=0:
+                av=getSenateCommitteeAV(l['href'])
+                committee={'committee':name,
+                            'chamber':'upper',
+                            'id': getCommitteeIDFromURL(l['href']),
+                            'members':members,
+                            'meetings':schedule,
+                            'media':av,}
+                committees.append(committee)
+            else:
+                name=l.text[1:]
+        return committees
+    else:
+        return None
+
 def getCommitteeMeetings(url):
     response=get_contents_of_url(url)
     if response!=None:
@@ -102,6 +144,13 @@ def getBillText(url):
         first_link.find_next("a")
 
     return bill_text[0]
+
+def merge_dict(d1, d2):
+    ''' Merge two dictionaries. '''
+    merged = {}
+    merged.update(d1)
+    merged.update(d2)
+    return merged
 
 def clear_cache(key):
     if key!=None:
