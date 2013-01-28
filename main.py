@@ -291,7 +291,7 @@ class AllDistrictsHandler(GenericHandler):
 
     def post(self):
         district_id=self.request.get("districts")
-        self.redirect(str(district_id))
+        self.redirect('/districts/'+str(district_id))
 
 class ChamberDistrictsHandler(GenericHandler):
     def get(self,chamber):
