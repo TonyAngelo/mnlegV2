@@ -2,10 +2,36 @@
 
 {% block content %}
 
-<h2>Minnesota Legislative Districts</h2>
+<h2>Minnesota Legislative District Maps</h2>
 
-<a href="/districts/senate">Complete Seante Map</a><br>
+<table width="800px"><tr><td width="300px">
+<h3>Complete Maps</h3>
+<a href="/districts/senate">Complete Senate Map</a><br>
 <a href="/districts/house">Complete House Map</a><br>
 <em>these maps can take a minute to load</em>
-
+</td><td align='center' width="250px">
+<h3>Select a Senate Disctrict</h3>
+<form method="post">
+<select name="districts">
+	{% for d in districts %}
+		{% if d.chamber=='upper' %}
+			<option value="{{d.boundary_id}}">{{d.name}}</option>
+		{% endif%}
+	{% endfor %}
+</select>
+<input type="submit" value="Select">
+</form>
+</td><td align='center' width="250px">
+<h3>Select a House Disctrict</h3>
+<form method="post">
+<select name="districts">
+	{% for d in districts %}
+		{% if d.chamber=='lower' %}
+			<option value="{{d.boundary_id}}">{{d.name}}</option>
+		{% endif%}
+	{% endfor %}
+</select>
+<input type="submit" value="Select">
+</form>
+</td></tr></table>
 {% endblock %}

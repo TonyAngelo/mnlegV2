@@ -292,7 +292,8 @@ def getAllCommitteeMeetingsAsEvents():
 	 			elif l=='Agenda:':
 	 				title_count=count+1
 	 			elif title_count==count:
-	 				event['title']=l
+	 				l=substitute_char(l,"'",'')
+	 				event['title']=substitute_char(l,"&",'and')
 	 				event['description'] = 'Location: '+room+' Chair: '+chair
 	 				meetings.append(event)
  		putInCache('all_committee_meetings',meetings)

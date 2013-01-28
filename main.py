@@ -286,7 +286,12 @@ class AllDistrictsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
+            params['districts']=getAllDistricts()
             self.render(districts_page, **params)
+
+    def post(self):
+        district_id=self.request.get("districts")
+        self.redirect(str(district_id))
 
 class ChamberDistrictsHandler(GenericHandler):
     def get(self,chamber):
