@@ -317,6 +317,12 @@ def getAllCommitteeMeetingsAsEvents():
  		putInCache('all_committee_meetings',meetings)
 	return meetings
 
+def getLegislatorIDByName(name):
+    legs=getCurrentLegislators()
+    for l in legs:
+        if name.find(l['first_name'])>0 and name.find(l['last_name'])>0:
+            return l['id']
+
 def getCurrentLegislators():
 	data=getFromCache('legislators')
 	if not data:

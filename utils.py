@@ -2,6 +2,7 @@ import hmac
 import hashlib
 import string
 import random
+import json
 import cgi
 import re
 import urllib2
@@ -65,6 +66,35 @@ def getCurrentBillsDateString():
     d=offsetDatebyDays(getTodaysDate(),4)
     return str(d.year)+"-"+str(d.month)+"-"+str(d.day)
 
+def getMNLegislatorByActive():
+    url='http://openstates.org/api/v1/legislators/?state=mn&apikey=4a26c19c3cae4f6c843c3e7816475fae'
+    return sendGetRequest(url)
+
+def sendGetRequest(url):
+    url=substitute_char(url,' ','%20')
+    response = get_contents_of_url(url)
+    if response:
+        data=json.loads(response)
+        return data
+    else:
+        return None
+
+def getCurrentLegislators():
+    data=getFromCache('legislators')
+    if not data:
+        data=getMNLegislatorByActive()
+        if data:
+            putInCache('legislators',data)
+        else:
+            return None
+    return data
+
+def getLegislatorIDByName(name):
+    legs=getCurrentLegislators()
+    for l in legs:
+        if name.find(l['first_name'][0])>=0 and name.find(l['last_name'])>=0:
+            return l['id']
+
 def getSenateCommitteeByID(com_id):
     url='http://www.senate.mn/committees/committee_members.php?ls=&cmte_id='+com_id
     title,members,meetings=getSenateCommitteeMembers(url)
@@ -89,11 +119,11 @@ def getSenateCommitteeMembers(url):
                 if t[0].find(':')>0:
                     m={'name': t[1][:t[1].find(' (')],
                         'role': t[0][:-1],
-                        'leg_id': '',}
+                        'leg_id': getLegislatorIDByName(t[1][:t[1].find(' (')]),}
                 else:
                     m={'name': t[0][:t[0].find(' (')],
                         'role': 'member',
-                        'leg_id': '',}
+                        'leg_id': getLegislatorIDByName(t[0][:t[0].find(' (')]),}
                 results.append(m)
         return title, results, meetings
 
