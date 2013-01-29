@@ -65,8 +65,37 @@ def getCurrentBillsDateString():
     d=offsetDatebyDays(getTodaysDate(),4)
     return str(d.year)+"-"+str(d.month)+"-"+str(d.day)
 
+def getSenateCommitteeByID(com_id):
+    url='http://www.senate.mn/committees/committee_members.php?ls=&cmte_id='+com_id
+    title,members,meetings=getSenateCommitteeMembers(url)
+    committee={'committee':title,
+                'members':members,
+                'meetings':meetings,}
+    return committee
+
 def getSenateCommitteeMembers(url):
-    pass
+    response=get_contents_of_url(url)
+    if response!=None:
+        soup=BeautifulSoup(response)
+        title = soup.find('div','leg_PageContent').h2.text
+        title = title[:title.find('Membership')-1]
+        info = soup.find_all('div','leg_Col3of4-First HRDFlyer')
+        meetings = soup.find('div','leg_Col1of4-Last HRDFlyer')
+        items=info[0].find_all('td')
+        results=[]
+        for i in items:
+            t = [text for text in i.stripped_strings]
+            if t:
+                if t[0].find(':')>0:
+                    m={'name': t[1][:t[1].find(' (')],
+                        'role': t[0][:-1],
+                        'leg_id': '',}
+                else:
+                    m={'name': t[0][:t[0].find(' (')],
+                        'role': 'member',
+                        'leg_id': '',}
+                results.append(m)
+        return title, results, meetings
 
 def getSenateCommitteeSchedule(url):
     pass
@@ -75,7 +104,8 @@ def getSenateCommitteeAV(url):
     pass
 
 def getCommitteeIDFromURL(url):
-    pass
+    #http://www.senate.mn/committees/committee_media_list.php?cmte_id=1002
+    return url[url.find('cmte_id=')+len('cmte_id='):]
 
 def getSenateCommittees():
     response=get_contents_of_url(mn_senate_base+'/committees/')
@@ -88,20 +118,23 @@ def getSenateCommittees():
         count=0
         for l in links:
             if l.text.find('Members')>=0:
-                members=getSenateCommitteeMembers(l['href'])
+                members=l['href']
             elif l.text.find('Schedule')>=0:
-                schedule=getSenateCommitteeSchedule(l['href'])
+                schedule=l['href']
             elif l.text.find('Audio/Video')>=0:
-                av=getSenateCommitteeAV(l['href'])
+                av=l['href']
                 committee={'committee':name,
                             'chamber':'upper',
                             'id': getCommitteeIDFromURL(l['href']),
-                            'members':members,
-                            'meetings':schedule,
-                            'media':av,}
+                            'members_url':members,
+                            'meetings_url':schedule,
+                            'media_url':av,}
                 committees.append(committee)
             else:
-                name=l.text[1:]
+                if l.text[1:].find('     ')>0:
+                    name=l.text[1:l.text[1:].find('     ')]
+                else:
+                    name=l.text[1:]
         return committees
     else:
         return None

@@ -18,8 +18,8 @@
 		<br>
 	{% endfor %}
 	</td><td valign="top" width="400px">
-	{% autoescape false %}
-		{{meetings}}
+	{% autoescape false %}{% if meetings %}
+	{{meetings}}{% endif %}
 	{% endautoescape %}
 	</td></tr>
 </table>

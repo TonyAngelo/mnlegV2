@@ -2,7 +2,7 @@ import json
 from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
 					bill_text_remove_markup,getCurrentBillsDateString,getCommitteeMeetings,
 					convertDateToTimeStamp,parseCommitteeMeetings,convertCommitteeDateStringtoDate,
-					getSenateCommittees,merge_dict,)
+					getSenateCommittees,getSenateCommitteeByID,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 
@@ -233,14 +233,29 @@ def getAllCommittees():
 def getCommitteeById(com_id,parsed=False):
 	data=getFromCache(com_id)
 	if not data:
-		data=getMNLegCommitteeById(com_id)
-		putInCache(com_id,data)
-		if not data:
-			return None
-	if parsed:
-		meetings=parseCommitteeMeetings(data['sources'][0]['url'])
+		if com_id[:2]=='MN':
+			data=getMNLegCommitteeById(com_id)
+			if data:
+				putInCache(com_id,data)
+		else:
+			data=getSenateCommitteeByID(com_id)
+		# if data:
+		# 	putInCache(com_id,data)
+
+	if com_id[:2]=='MN':
+		if parsed:
+			#meetings=getFromCache('meetings_parsed_'+com_id)
+			#if not meetings:
+			meetings=parseCommitteeMeetings(data['sources'][0]['url'])
+				#putInCache('meetings_parsed_'+com_id,meetings)
+		else:
+			#meetings=getFromCache('meetings_'+com_id)
+			#if not meetings:
+			meetings=getCommitteeMeetings(data['sources'][0]['url'])
+				#putInCache('meetings_'+com_id,meetings)
 	else:
-		meetings=getCommitteeMeetings(data['sources'][0]['url'])
+		meetings=data['meetings']
+
 	return data,meetings
 
 def getAllCommitteeMeetings(parsed=False):

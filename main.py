@@ -403,7 +403,7 @@ app = webapp2.WSGIApplication([
     ('/legislators/?', LegislatureHandler),
     ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
-    ('/committees/(MNC[0-9]+)/?', CommitteeHandler),
+    ('/committees/(MNC[0-9]+|[0-9]+)/?', CommitteeHandler),
     ('/events/?', AllEventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?', AllDistrictsHandler),
