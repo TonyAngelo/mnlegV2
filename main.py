@@ -20,8 +20,8 @@ import os
 import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
-                    clear_cache,getFromCache,putInCache,getBillText)
-from mnleg import (getSessionNames,getBillNames,getBillById,
+                    clear_cache,getFromCache,putInCache,)
+from mnleg import (getSessionNames,getBillNames,getBillById,getBillText,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
                     getAllCommittees,getCommitteeById,getAllCommitteeMeetingsAsEvents,

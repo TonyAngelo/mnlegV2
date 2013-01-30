@@ -11,7 +11,6 @@ import datetime
 from xml.dom import minidom
 from google.appengine.api import memcache
 from google.appengine.api import images
-from bs4 import BeautifulSoup
 
 user_re=re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 pass_re=re.compile(r"^.{3,20}$")
@@ -23,7 +22,6 @@ anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
 
 SECRET = 'somesecretshityo'
 IP_URL="http://api.hostip.info/?ip="
-mn_senate_base='http://www.senate.leg.state.mn.us'
 
 def resize_image(image,width=0,height=0):
     return images.resize(image, width, height)
@@ -45,7 +43,7 @@ def convertDateTimeStringtoDateTime(date):
     except Exception:
         return None
 
-def convertCommitteeDateStringtoDate(time_string):
+def convertDateStringtoDate(time_string):
     try:
         t = time.strptime(time_string,'%B %d, %Y %I:%M %p')
         return t
@@ -62,151 +60,9 @@ def offsetDatebyDays(date,days):
     z=datetime.timedelta(days=days)
     return date-z
 
-def getCurrentBillsDateString():
+def getDateString():
     d=offsetDatebyDays(getTodaysDate(),4)
     return str(d.year)+"-"+str(d.month)+"-"+str(d.day)
-
-def getMNLegislatorByActive():
-    url='http://openstates.org/api/v1/legislators/?state=mn&apikey=4a26c19c3cae4f6c843c3e7816475fae'
-    return sendGetRequest(url)
-
-def sendGetRequest(url):
-    url=substitute_char(url,' ','%20')
-    response = get_contents_of_url(url)
-    if response:
-        data=json.loads(response)
-        return data
-    else:
-        return None
-
-def getCurrentLegislators():
-    data=getFromCache('legislators')
-    if not data:
-        data=getMNLegislatorByActive()
-        if data:
-            putInCache('legislators',data)
-        else:
-            return None
-    return data
-
-def getLegislatorIDByName(name):
-    legs=getCurrentLegislators()
-    for l in legs:
-        if name.find(l['first_name'][0])>=0 and name.find(l['last_name'])>=0:
-            return l['id']
-
-def getSenateCommitteeByID(com_id):
-    url='http://www.senate.mn/committees/committee_members.php?ls=&cmte_id='+com_id
-    title,members,meetings=getSenateCommitteeMembers(url)
-    committee={'committee':title,
-                'members':members,
-                'meetings':meetings,}
-    return committee
-
-def getSenateCommitteeMembers(url):
-    response=get_contents_of_url(url)
-    if response!=None:
-        soup=BeautifulSoup(response)
-        title = soup.find('div','leg_PageContent').h2.text
-        title = title[:title.find('Membership')-1]
-        info = soup.find_all('div','leg_Col3of4-First HRDFlyer')
-        meetings = soup.find('div','leg_Col1of4-Last HRDFlyer')
-        items=info[0].find_all('td')
-        results=[]
-        for i in items:
-            t = [text for text in i.stripped_strings]
-            if t:
-                if t[0].find(':')>0:
-                    m={'name': t[1][:t[1].find(' (')],
-                        'role': t[0][:-1],
-                        'leg_id': getLegislatorIDByName(t[1][:t[1].find(' (')]),}
-                else:
-                    m={'name': t[0][:t[0].find(' (')],
-                        'role': 'member',
-                        'leg_id': getLegislatorIDByName(t[0][:t[0].find(' (')]),}
-                results.append(m)
-        return title, results, meetings
-
-def getSenateCommitteeSchedule(url):
-    pass
-
-def getSenateCommitteeAV(url):
-    pass
-
-def getCommitteeIDFromURL(url):
-    #http://www.senate.mn/committees/committee_media_list.php?cmte_id=1002
-    return url[url.find('cmte_id=')+len('cmte_id='):]
-
-def getSenateCommittees():
-    response=get_contents_of_url(mn_senate_base+'/committees/')
-    if response!=None:
-        soup=BeautifulSoup(response)
-        info = soup.find_all('div','HRDFlyer')
-        links = links=info[0].find_all('a')
-        name=''
-        committees=[]
-        count=0
-        for l in links:
-            if l.text.find('Members')>=0:
-                members=l['href']
-            elif l.text.find('Schedule')>=0:
-                schedule=l['href']
-            elif l.text.find('Audio/Video')>=0:
-                av=l['href']
-                committee={'committee':name,
-                            'chamber':'upper',
-                            'id': getCommitteeIDFromURL(l['href']),
-                            'members_url':members,
-                            'meetings_url':schedule,
-                            'media_url':av,}
-                committees.append(committee)
-            else:
-                if l.text[1:].find('     ')>0:
-                    name=l.text[1:l.text[1:].find('     ')]
-                else:
-                    name=l.text[1:]
-        return committees
-    else:
-        return None
-
-def getCommitteeMeetings(url):
-    response=get_contents_of_url(url)
-    if response!=None:
-        soup=BeautifulSoup(response)
-        meeting_text = soup.find_all('div','leg_col1of3-Last')
-        if meeting_text[0]:
-            return meeting_text[0]
-    return None
-
-def parseCommitteeMeetings(url):
-    response=get_contents_of_url(url)
-    if response!=None:
-        soup=BeautifulSoup(response)
-        meeting_text = soup.find_all('div','leg_col1of3-Last')
-        if meeting_text[0]:
-            if meeting_text[0].p.p:
-                m=meeting_text[0].p.p
-                return [text for text in m.stripped_strings]
-            return meeting_text[0]
-    return None
-
-def getBillText(url):
-    bill_page=get_contents_of_url(url)
-    clean_bill=substitute_char(bill_page,var_re,'')
-    clean_bill=substitute_char(clean_bill,markup_id_re,'')
-    soup=BeautifulSoup(clean_bill)
-    for e in soup.find_all('br'):
-        e.extract()
-    br = soup.new_tag('br')
-    
-    bill_text = soup.find_all('div','xtend')
-
-    for e in bill_text[0]('a'):
-        bill_text[0].a.insert_before(br)
-        first_link = bill_text[0].a
-        first_link.find_next("a")
-
-    return bill_text[0]
 
 def merge_dict(d1, d2):
     ''' Merge two dictionaries. '''
@@ -257,10 +113,6 @@ def get_coords(ip):
 def substitute_char(s,char,sub):
     result = re.sub(char,sub,s)
     return result
-
-def bill_text_remove_markup(text):
-    text=substitute_char(text,var_re,'')
-    return text
 
 def check_valid_entry(entry,check):
     result=""

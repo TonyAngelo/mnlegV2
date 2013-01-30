@@ -1,14 +1,15 @@
 import json
+from bs4 import BeautifulSoup
 from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
-					bill_text_remove_markup,getCurrentBillsDateString,getCommitteeMeetings,
-					convertDateToTimeStamp,parseCommitteeMeetings,convertCommitteeDateStringtoDate,
-					getSenateCommittees,getSenateCommitteeByID,)
+					getDateString,
+					convertDateToTimeStamp,convertDateStringtoDate,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
 apikey_url="apikey="
+mn_senate_base='http://www.senate.leg.state.mn.us'
 
 day_of_week={'SUNDAY,':'SUNDAY,',
              'MONDAY,':'MONDAY,',
@@ -17,6 +18,10 @@ day_of_week={'SUNDAY,':'SUNDAY,',
              'THURSDAY,':'THURSDAY,',
              'FRIDAY,':'FRIDAY,',
              'SATURDAY,':'SATURDAY,',}
+
+#########################################################################################
+##### sunlight fundation API functions #####                                        #####
+#########################################################################################
 
 def getMNLegAllDistricts():
 	#http://openstates.org/api/v1/districts/mn/?apikey=4a26c19c3cae4f6c843c3e7816475fae
@@ -76,7 +81,7 @@ def getMNLegBillsbyAuthor(author,session='session'):
 
 def getMNLegBillsCurrent(n=10):
 	#http://openstates.org/api/v1/bills/?per_page=5&page=1&updated_since=2013-1-15&state=mn&search_window=session&apikey=4a26c19c3cae4f6c843c3e7816475fae
-	d=getCurrentBillsDateString()
+	d=getDateString()
 	url=base_url+'bills/?per_page='+str(n)+'&page=1&updated_since='+d+'&state=mn&search_window=session&apikey=4a26c19c3cae4f6c843c3e7816475fae'
 	return sendGetRequest(url)
 
@@ -105,7 +110,27 @@ def sendGetRequest(url):
 	else:
 		return None
 
-def getCurrentBills(n=10):
+#########################################################################################
+##### misc helper functions #####                                                   #####
+#########################################################################################
+
+def sortBillsByDate(data,sort):
+	bills=[]
+	for d in data:
+		bills.append(d)
+	b=sorted(bills, key=lambda bills: bills['updated_at'] ,reverse=sort)
+	return b
+
+def bill_text_remove_markup(text):
+    text=substitute_char(text,var_re,'')
+    return text
+
+
+#########################################################################################
+##### requests from event handlers #####                                            #####
+#########################################################################################
+
+def getCurrentBills(n=10): # front page recent bills
 	data=getFromCache('Current Bills')
 	if not data:
 		data = getMNLegBillsCurrent(n)
@@ -115,7 +140,68 @@ def getCurrentBills(n=10):
 			return None
 	return data
 
-def getAllDistricts():
+def getBillsbyKeyword(keyword,sort=True): # bills search page 
+	data=getFromCache('query='+keyword)
+	if not data:
+		data = getMNLegBillsbyKeyword(keyword)
+		if data:
+			putInCache('query='+keyword,data)
+		else:
+			return None
+	return sortBillsByDate(data,sort)
+
+def getBillsbyAuthor(author,session='session',sort=True): # bills search page
+	data=getFromCache('bills='+author+'_'+session)
+	if not data:
+		data = getMNLegBillsbyAuthor(author,session)
+		if data:
+			putInCache('bills='+author+'_'+session,data)
+		else:
+			return None
+	return sortBillsByDate(data,sort)
+
+def getBillById(bill,session): # bills search page
+	path=session+bill
+	data=getFromCache(path)
+	if not data:
+		data=getMNLegBillInfobyId(bill,session)
+		if data:
+	 		putInCache(path,data)
+		else:
+			return None
+	return data
+
+def getBillNames(session,sort=True): # bills by session
+	data=getFromCache(session)
+	if not data:
+		data=getMNLegBillsbySession(session)
+		if data:
+			putInCache(session,data)
+		else:
+			return None
+	bills=[]
+	for d in data:
+		n=int(d['bill_id'][3:])
+		bills.append((d,n))
+	b=sorted(bills, key=lambda tup: tup[1],reverse=sort)
+	return b
+
+def getSessionNames(): # session names for bills search page
+	data=getFromCache("sessions")
+	if not data:
+		data=getMNLegMetaData()
+		if data:
+			putInCache("sessions",data)
+		else:
+			return None
+	session_details=data["session_details"]
+	sessions=[]
+	for s in session_details:
+		sessions.append(s)
+	sessions.sort(reverse=True)
+	return sessions,session_details
+
+def getAllDistricts(): # districts front
 	data=getFromCache('districts')
 	if not data:
 		data=getMNLegAllDistricts()
@@ -125,7 +211,7 @@ def getAllDistricts():
 			return None
 	return data
 
-def getDistrictById(district_id):
+def getDistrictById(district_id): # individual district
 	data=getFromCache(district_id)
 	if not data:
 		data=getMNLegDistrictById(district_id)
@@ -158,7 +244,7 @@ def getDistrictById(district_id):
 			return None
 	return data
 
-def getAllDistrictsByID(chamber):
+def getAllDistrictsByID(chamber): # for full senate/house map pages
 	all_data=[]
 	if chamber=='lower':
 		data1=getFromCache(chamber+'_districts1')
@@ -239,6 +325,7 @@ def getCommitteeById(com_id,parsed=False):
 				putInCache(com_id,data)
 		else:
 			data=getSenateCommitteeByID(com_id)
+			#data['']
 		# if data:
 		# 	putInCache(com_id,data)
 
@@ -271,6 +358,10 @@ def getAllCommitteeMeetingsAsEvents():
 	if not meetings:
 		data=getAllCommitteeMeetings(True)
 		meetings=[]
+		count=0
+		title_count=-1
+		room_count=-1
+		chair_count=-1
 		for com in data:
  			for l in com[1]:
  				if l in day_of_week:
@@ -290,7 +381,7 @@ def getAllCommitteeMeetingsAsEvents():
 		 			date=l
 		 		elif count==2:
 		 			time=l
-		 			f=convertCommitteeDateStringtoDate(date+' '+time)
+		 			f=convertDateStringtoDate(date+' '+time)
 		 			if f!=None:
 		 				event['day']=f.tm_mday
 	 					event['month']=f.tm_mon
@@ -311,7 +402,11 @@ def getAllCommitteeMeetingsAsEvents():
 	 				title_count=count+1
 	 			elif title_count==count:
 	 				l=substitute_char(l,"'",'')
-	 				event['title']=substitute_char(l,"&",'and')
+	 				l=substitute_char(l,"&",'and')
+	 				if len(l)>50:
+	 					event['title']=l[:50]+'...'
+	 				else:
+	 					event['title']=l
 	 				event['description'] = 'Location: '+room+' Chair: '+chair
 	 				meetings.append(event)
  		putInCache('all_committee_meetings',meetings)
@@ -343,70 +438,121 @@ def getLegislatorByID(leg_id):
 			return None
 	return data
 
-def sortBillsByDate(data,sort):
-	bills=[]
-	for d in data:
-		bills.append(d)
-	b=sorted(bills, key=lambda bills: bills['updated_at'] ,reverse=sort)
-	return b
+def getLegislatorIDByName(name):
+    legs=getCurrentLegislators()
+    for l in legs:
+        if name.find(l['first_name'][0])>=0 and name.find(l['last_name'])>=0:
+            return l['id']
 
-def getBillsbyKeyword(keyword,sort=True):
-	data=getFromCache('query='+keyword)
-	if not data:
-		data = getMNLegBillsbyKeyword(keyword)
-		if data:
-			putInCache('query='+keyword,data)
-		else:
-			return None
-	return sortBillsByDate(data,sort)
+def getSenateCommitteeByID(com_id):
+    url='http://www.senate.mn/committees/committee_members.php?ls=&cmte_id='+com_id
+    title,members,meetings=getSenateCommitteeMembers(url)
+    committee={'committee':title,
+                'members':members,
+                'meetings':meetings,}
+    return committee
 
-def getBillsbyAuthor(author,session='session',sort=True):
-	data=getFromCache('bills='+author+'_'+session)
-	if not data:
-		data = getMNLegBillsbyAuthor(author,session)
-		if data:
-			putInCache('bills='+author+'_'+session,data)
-		else:
-			return None
-	return sortBillsByDate(data,sort)
+def getSenateCommitteeMembers(url):
+    response=get_contents_of_url(url)
+    if response!=None:
+        soup=BeautifulSoup(response)
+        title = soup.find('div','leg_PageContent').h2.text
+        title = title[:title.find('Membership')-1]
+        info = soup.find_all('div','leg_Col3of4-First HRDFlyer')
+        meetings = soup.find('div','leg_Col1of4-Last HRDFlyer')
+        items=info[0].find_all('td')
+        results=[]
+        for i in items:
+            t = [text for text in i.stripped_strings]
+            if t:
+                if t[0].find(':')>0:
+                    m={'name': t[1][:t[1].find(' (')],
+                        'role': t[0][:-1],
+                        'leg_id': getLegislatorIDByName(t[1][:t[1].find(' (')]),}
+                else:
+                    m={'name': t[0][:t[0].find(' (')],
+                        'role': 'member',
+                        'leg_id': getLegislatorIDByName(t[0][:t[0].find(' (')]),}
+                results.append(m)
+        return title, results, meetings
 
-def getBillById(bill,session):
-	path=session+bill
-	data=getFromCache(path)
-	if not data:
-		data=getMNLegBillInfobyId(bill,session)
-		if data:
-	 		putInCache(path,data)
-		else:
-			return None
-	return data
+def getSenateCommitteeSchedule(url):
+    pass
 
-def getBillNames(session,sort=True):
-	data=getFromCache(session)
-	if not data:
-		data=getMNLegBillsbySession(session)
-		if data:
-			putInCache(session,data)
-		else:
-			return None
-	bills=[]
-	for d in data:
-		n=int(d['bill_id'][3:])
-		bills.append((d,n))
-	b=sorted(bills, key=lambda tup: tup[1],reverse=sort)
-	return b
+def getSenateCommitteeAV(url):
+    pass
 
-def getSessionNames():
-	data=getFromCache("sessions")
-	if not data:
-		data=getMNLegMetaData()
-		if data:
-			putInCache("sessions",data)
-		else:
-			return None
-	session_details=data["session_details"]
-	sessions=[]
-	for s in session_details:
-		sessions.append(s)
-	sessions.sort(reverse=True)
-	return sessions,session_details
+def getCommitteeIDFromURL(url):
+    #http://www.senate.mn/committees/committee_media_list.php?cmte_id=1002
+    return url[url.find('cmte_id=')+len('cmte_id='):]
+
+def getSenateCommittees():
+    response=get_contents_of_url(mn_senate_base+'/committees/')
+    if response!=None:
+        soup=BeautifulSoup(response)
+        info = soup.find_all('div','HRDFlyer')
+        links = links=info[0].find_all('a')
+        name=''
+        committees=[]
+        count=0
+        for l in links:
+            if l.text.find('Members')>=0:
+                members=l['href']
+            elif l.text.find('Schedule')>=0:
+                schedule=l['href']
+            elif l.text.find('Audio/Video')>=0:
+                av=l['href']
+                committee={'committee':name,
+                            'chamber':'upper',
+                            'id': getCommitteeIDFromURL(l['href']),
+                            'members_url':members,
+                            'meetings_url':schedule,
+                            'media_url':av,}
+                committees.append(committee)
+            else:
+                if l.text[1:].find('     ')>0:
+                    name=l.text[1:l.text[1:].find('     ')]
+                else:
+                    name=l.text[1:]
+        return committees
+    else:
+        return None
+
+def getCommitteeMeetings(url):
+    response=get_contents_of_url(url)
+    if response!=None:
+        soup=BeautifulSoup(response)
+        meeting_text = soup.find_all('div','leg_col1of3-Last')
+        if meeting_text[0]:
+            return meeting_text[0]
+    return None
+
+def parseCommitteeMeetings(url):
+    response=get_contents_of_url(url)
+    if response!=None:
+        soup=BeautifulSoup(response)
+        meeting_text = soup.find_all('div','leg_col1of3-Last')
+        if meeting_text[0]:
+            if meeting_text[0].p.p:
+                m=meeting_text[0].p.p
+                return [text for text in m.stripped_strings]
+            return meeting_text[0]
+    return None
+
+def getBillText(url):
+    bill_page=get_contents_of_url(url)
+    clean_bill=substitute_char(bill_page,var_re,'')
+    clean_bill=substitute_char(clean_bill,markup_id_re,'')
+    soup=BeautifulSoup(clean_bill)
+    for e in soup.find_all('br'):
+        e.extract()
+    br = soup.new_tag('br')
+    
+    bill_text = soup.find_all('div','xtend')
+
+    for e in bill_text[0]('a'):
+        bill_text[0].a.insert_before(br)
+        first_link = bill_text[0].a
+        first_link.find_next("a")
+
+    return bill_text[0]
