@@ -104,6 +104,11 @@ class GenericHandler(webapp2.RequestHandler):
             putInCache(chamber+'_districts_page',page)
         self.write(page)
 
+    def district_render(self, district, **kw):
+        page=self.render_str(district_page, **kw)
+        putInCache('district '+district,page)
+        self.write(page)
+
     def set_secure_cookie(self,name,val):
         cookie_val=make_secure_val(val)
         self.response.set_cookie(name, cookie_val, path="/")
@@ -321,10 +326,14 @@ class DistrictHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            data=getDistrictById(district_id)
-            params['data']=data
-            params['district_map']='True'
-            self.render(district_page, **params)
+            page=getFromCache('district '+district_id)
+            if not page:
+                data=getDistrictById(district_id)
+                params['data']=data
+                params['district_map']='True'
+                self.district_render(district_id, **params)
+            else:
+                self.write(page)
 
 class SignupPage(GenericHandler):
     def get(self):

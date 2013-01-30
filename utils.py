@@ -50,6 +50,9 @@ def convertDateStringtoDate(time_string):
     except Exception:
         return None
 
+def convertSenComMeetDateStringtoDate(date):
+    return time.strptime(l[0].text,'%A, %B %d, %Y%I:%M %p')
+
 def getMonthNumberFromString(s):
     return time.strptime(s,'%B').tm_mon
 
