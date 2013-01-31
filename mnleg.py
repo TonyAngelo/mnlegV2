@@ -1,6 +1,7 @@
 import json
+import re
 from bs4 import BeautifulSoup
-from utils import (get_contents_of_url,getFromCache,putInCache,substitute_char,
+from utils import (get_contents_of_url,getFromCache,putInCache,cacheDance,substitute_char,
 					getDateString,convertSenComMeetDateStringtoDate,
 					convertDateToTimeStamp,convertDateStringtoDate,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
@@ -10,6 +11,10 @@ API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
 apikey_url="apikey="
 mn_senate_base='http://www.senate.leg.state.mn.us'
+
+var_re=re.compile(r'<var>[0-9]+\.[0-9]+</var>')
+markup_id_re=re.compile(r'<a id="pl\.[0-9]+\.[0-9]+"></a>')
+#anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
 
 day_of_week={'SUNDAY,':'SUNDAY,',
              'MONDAY,':'MONDAY,',
@@ -335,77 +340,31 @@ def getAllCommitteeMeetingsAsEvents():
 ##### requests from event handlers #####                                            #####
 #########################################################################################
 
-def cacheDance(key,function,**kw):
-	data=getFromCache(key)
-	if not data:
-		data = function(**kw)
-		if data:
-			putInCache(key,data)
-		else:
-			return None
-	return data
-
 def getCurrentBills(n=10): # front page recent bills
 	params={'n':n}
 	data=cacheDance('Current Bills',getMNLegBillsCurrent, **params)
-	# data=getFromCache('Current Bills')
-	# if not data:
-	# 	data = getMNLegBillsCurrent(n)
-	# 	if data:
-	# 		putInCache('Current Bills',data)
-	# 	else:
-	# 		return None
 	return data
 
 def getBillsbyKeyword(keyword,sort=True): # bills search page 
 	params={'keyword':keyword}
 	data=cacheDance('query='+keyword,getMNLegBillsbyKeyword, **params)
-	# data=getFromCache('query='+keyword)
-	# if not data:
-	# 	data = getMNLegBillsbyKeyword(keyword)
-	# 	if data:
-	# 		putInCache('query='+keyword,data)
-	# 	else:
-	# 		return None
 	return sortBillsByDate(data,sort)
 
 def getBillsbyAuthor(author,session='session',sort=True): # bills search page
 	params={'author':author,
 			'session':session}
 	data=cacheDance('bills='+author+'_'+session,getMNLegBillsbyAuthor, **params)
-	# data=getFromCache('bills='+author+'_'+session)
-	# if not data:
-	# 	data = getMNLegBillsbyAuthor(author,session)
-	# 	if data:
-	# 		putInCache('bills='+author+'_'+session,data)
-	# 	else:
-	# 		return None
 	return sortBillsByDate(data,sort)
 
 def getBillById(bill,session): # bills search page
-	#path=session+bill
 	params={'bill':bill,
 			'session':session}
 	data=cacheDance(session+bill,getMNLegBillInfobyId, **params)
-	# data=getFromCache(path)
-	# if not data:
-	# 	data=getMNLegBillInfobyId(bill,session)
-	# 	if data:
-	#  		putInCache(path,data)
-	# 	else:
-	# 		return None
 	return data
 
 def getBillNames(session,sort=True): # bills by session
 	params={'session':session}
 	data=cacheDance(session,getMNLegBillsbySession, **params)
-	# data=getFromCache(session)
-	# if not data:
-	# 	data=getMNLegBillsbySession(session)
-	# 	if data:
-	# 		putInCache(session,data)
-	# 	else:
-	# 		return None
 	bills=[]
 	for d in data:
 		n=int(d['bill_id'][3:])
@@ -415,13 +374,6 @@ def getBillNames(session,sort=True): # bills by session
 
 def getSessionNames(): # session names for bills search page
 	data=cacheDance("sessions",getMNLegMetaData)
-	# data=getFromCache("sessions")
-	# if not data:
-	# 	data=getMNLegMetaData()
-	# 	if data:
-	# 		putInCache("sessions",data)
-	# 	else:
-	# 		return None
 	session_details=data["session_details"]
 	sessions=[]
 	for s in session_details:
@@ -430,14 +382,14 @@ def getSessionNames(): # session names for bills search page
 	return sessions,session_details
 
 def getAllDistricts(): # districts front
-	data=cacheDance('districts',getMNLegAllDistricts)
-	# data=getFromCache('districts')
-	# if not data:
-	# 	data=getMNLegAllDistricts()
-	# 	if data:
-	#  		putInCache('districts',data)
-	# 	else:
-	# 		return None
+	data=getFromCache('districts')
+	if not data:
+		data = getMNLegAllDistricts()
+		if data:
+			data=sorted(data)
+			putInCache('districts',data)
+		else:
+			return None
 	return data
 
 def getDistrictById(district_id): # individual district
@@ -519,20 +471,11 @@ def getAllEvents(): # events calendar page
 			for m in meetings:
 				events.append(m)
 	 	putInCache('events',events)
-		# else:
-		# 	return None
 	return events
 
 def getEventById(event_id): # event page
 	params={'event_id':event_id}
 	data=cacheDance(event_id,getMNLegEventById, **params)
-	# data=getFromCache(event_id)
-	# if not data:
-	# 	data=getMNLegEventById(event_id)
-	# 	if data:
-	#  		putInCache(event_id,data)
-	# 	else:
-	# 		return None
 	return data
 
 def getAllCommittees(): # committees front page
@@ -554,47 +497,28 @@ def getCommitteeById(com_id,parsed=False): # committee page
 			data=getMNLegCommitteeById(com_id)
 			if data:
 				putInCache(com_id,data)
+			if parsed:
+				#meetings=getFromCache('meetings_parsed_'+com_id)
+				#if not meetings:
+				meetings=parseHouseCommitteeMeetings(data['sources'][0]['url'])
+					#putInCache('meetings_parsed_'+com_id,meetings)
+			else:
+				#meetings=getFromCache('meetings_'+com_id)
+				#if not meetings:
+				meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
+					#putInCache('meetings_'+com_id,meetings)
 		else:
 			data=getSenateCommitteeByID(com_id)
-			#data['']
-		# if data:
-		# 	putInCache(com_id,data)
-
-	if com_id[:2]=='MN':
-		if parsed:
-			#meetings=getFromCache('meetings_parsed_'+com_id)
-			#if not meetings:
-			meetings=parseHouseCommitteeMeetings(data['sources'][0]['url'])
-				#putInCache('meetings_parsed_'+com_id,meetings)
-		else:
-			#meetings=getFromCache('meetings_'+com_id)
-			#if not meetings:
-			meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
-				#putInCache('meetings_'+com_id,meetings)
-	else:
-		meetings=data['meetings']
-
+			if data:
+				#putInCache(com_id,data)
+				meetings=data['meetings']
 	return data,meetings
 
 def getCurrentLegislators(): # legislators page
 	data=cacheDance('legislators',getMNLegislatorByActive,)
-	# data=getFromCache('legislators')
-	# if not data:
-	# 	data=getMNLegislatorByActive()
-	# 	if data:
-	#  		putInCache('legislators',data)
-	# 	else:
-	# 		return None
 	return data
 
 def getLegislatorByID(leg_id): # individual legislator page
 	params={'leg_id':leg_id}
 	data=cacheDance(leg_id,getMNLegislatorById, **params)
-	# data=getFromCache(leg_id)
-	# if not data:
-	# 	data=getMNLegislatorById(leg_id)
-	# 	if data:
-	#  		putInCache(leg_id,data)
-	# 	else:
-	# 		return None
 	return data

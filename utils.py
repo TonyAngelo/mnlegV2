@@ -2,7 +2,6 @@ import hmac
 import hashlib
 import string
 import random
-import json
 import cgi
 import re
 import urllib2
@@ -73,6 +72,16 @@ def merge_dict(d1, d2):
     merged.update(d1)
     merged.update(d2)
     return merged
+
+def cacheDance(key,function,**kw):
+    data=getFromCache(key)
+    if not data:
+        data = function(**kw)
+        if data:
+            putInCache(key,data)
+        else:
+            return None
+    return data
 
 def clear_cache(key):
     if key!=None:

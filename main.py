@@ -71,6 +71,11 @@ def render_str(template, **params):
 def render_signup_email_body(user,email,user_ip):
 	return sign_up_body+"\n"+"Username: "+user+"\n"+"Email: "+email+"/n"+"IP: "+user_ip
 
+def updateBillInfoPageParams(params,bill,session):
+    params['bill_info']=getBillById(bill,session)
+    url=params['bill_info']['versions'][-1]['url']
+    params['bill_text']=getBillText(url)
+
 def get_chamber_name(chamber):
     if chamber=="House":
         body='lower'
@@ -173,7 +178,7 @@ class SessionsHandler(GenericHandler):
         if submit=='Search by Bill':
             bill=self.request.get("bill")
             session=self.request.get("session")
-            params['bill_info']=getBillById(bill,session)
+            updateBillInfoPageParams(params,bill,session)
             self.render(bill_info_page, **params)
         elif submit=='Search by Keyword':
             params['keyword']=self.request.get("keyword")
@@ -201,9 +206,7 @@ class BillInfoHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['bill_info']=getBillById(bill,session)
-            url=params['bill_info']['versions'][-1]['url']
-            params['bill_text']=getBillText(url)
+            updateBillInfoPageParams(params,bill,session)
             self.render(bill_info_page, **params)
 
 class LegislatureHandler(GenericHandler):

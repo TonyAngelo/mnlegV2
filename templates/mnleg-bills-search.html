@@ -14,27 +14,41 @@
       });
     });
 </script>
+<script type="text/javascript"> 
+	<!-- 
+	//accepts 2 parameters: the form number and element number (rememeber that these are zero based arrays) 
+	function setFocus(formNum, elementNum) { 
+		if (document.forms.length > 0) { 
+			document.forms[formNum].elements[elementNum].select() 
+		};
+	};
+	//--> 
+</script> 
 
 <table><tr><td width="400" valign="top">
 <h2>Bill Search</h2>
 <br>
-<form method="post">
+<form method="post" name='keyword'>
 search by keyword<br><br>
-	<input size="30" placeholder="(ex. Vikings Stadium)" name="keyword" value="{{keyword}}" pattern="([a-zA-Z0-9 ]+)">
+	<input size="30" placeholder="(ex. Vikings Stadium)" name="keyword" value="{{keyword}}" pattern="([a-zA-Z0-9 ]+)" onfocus="setFocus(0,1)">
 <br><br>
 <input type="submit" name='submit' value="Search by Keyword">
+</form>
 <br><br>
+<form method="post" name='bill'>
 or search by bill<br><br>
-<input size="10" placeholder="(ex. SF 1)" name="bill" value="{{bill}}" pattern="([Ss|Hh][A-Za-z] [0-9]+)"> 
+<input size="10" placeholder="(ex. SF 1)" name="bill" value="{{bill}}" pattern="([Ss|Hh][A-Za-z] [0-9]+)" onfocus="setFocus(0,4)"> 
 <select name='session'>
 	{% for s in sessions %}
 	 	<option value="{{s}}">{{details[s]['display_name']}}</option>
 	{% endfor %}
 </select><br><br>
 <input type="submit" name='submit' value="Search by Bill">
+</form>
 <br><br>
+<form method="post" name='legislator'>
 or search by legislator<br><br>
-	 <input placeholder="(autocomplete field)" id="legs" name='leg' />
+	 <input placeholder="(autocomplete field)" id="legs" name='leg' onfocus="setFocus(0,6)"/>
 	
 	<br><br>
 	<input type="submit" name='submit' value="Search by Legislator">
