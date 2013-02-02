@@ -1,15 +1,10 @@
 {% extends "base.html" %}
-
 {% block content %}
-
 <div class='breadcrumb'><a href='/committees'>committees</a> > {{committee.committee}}</div>
-
 <h2>{{committee.committee}}</h2>
-
 <table>
 	<tr><td valign="top" width="400px">
 	<h3>Members</h3>
-
 	{% for m in committee.members %}
 		<a href="/legislators/{{m.leg_id}}">{{m.name}}</a>
 		{% if m.role!='member' %}
@@ -18,10 +13,8 @@
 		<br>
 	{% endfor %}
 	</td><td valign="top" width="400px">
-	{% autoescape false %}{% if meetings %}
-	{{meetings}}{% endif %}
-	{% endautoescape %}
+	{% if committee.meetings %}{% autoescape false %}
+	{{committee.meetings}}{% endautoescape %}{% endif %}
 	</td></tr>
 </table>
-
 {% endblock %}

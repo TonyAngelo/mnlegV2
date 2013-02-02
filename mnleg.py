@@ -148,35 +148,23 @@ def getBillText(url):
 
     return bill_text[0]
 
-def getLegislatorIDByName(name):
-    legs=getCurrentLegislators()
-    for l in legs:
-        if name.find(l['first_name'][0])>=0 and name.find(l['last_name'])>=0:
-            return l['id']
-
-def getSenateCommitteeMembers(url):
-    response=get_contents_of_url(url)
-    if response!=None:
-        soup=BeautifulSoup(response)
-        title = soup.find('div','leg_PageContent').h2.text
-        title = title[:title.find('Membership')-1]
-        info = soup.find_all('div','leg_Col3of4-First HRDFlyer')
-        meetings = soup.find('div','leg_Col1of4-Last HRDFlyer')
-        items=info[0].find_all('td')
-        results=[]
-        for i in items:
-            t = [text for text in i.stripped_strings]
-            if t:
-                if t[0].find(':')>0:
-                    m={'name': t[1][:t[1].find(' (')],
-                        'role': t[0][:-1],
-                        'leg_id': getLegislatorIDByName(t[1][:t[1].find(' (')]),}
-                else:
-                    m={'name': t[0][:t[0].find(' (')],
-                        'role': 'member',
-                        'leg_id': getLegislatorIDByName(t[0][:t[0].find(' (')]),}
-                results.append(m)
-        return title, results, meetings
+def getAllEventsAsEvents(data):
+	events=[]
+	if data:
+		for d in data:
+			event={
+			'start':d['when'][:4]+'-'+d['when'][5:7]+'-'+d['when'][8:10]+' '+d['when'][11:13]+':'+d['when'][14:16]+':00',
+	 		# 'day':int(d['when'][8:10]),
+	 		# 'month':int(d['when'][5:7]),
+	 		# 'year':int(d['when'][:4]),
+	 		# 'hour':int(d['when'][11:13]),
+	 		# 'min':int(d['when'][14:16]),
+	 		'type':d['type'],
+	 		'title':d['description'],
+	 		'description':d['description'],
+	 		'url':'/events/'+d['id']}
+			events.append(event)
+	return events
 
 def getSenateCommitteeSchedule(url):
     pass
@@ -220,13 +208,64 @@ def getSenateCommittees():
     else:
         return None
 
-def getSenateCommitteeByID(com_id):
-    url='http://www.senate.mn/committees/committee_members.php?ls=&cmte_id='+com_id
-    title,members,meetings=getSenateCommitteeMembers(url)
-    committee={'committee':title,
+def makeCommitteeDict(title,members,meetings):
+	committee={'committee':title,
                 'members':members,
                 'meetings':meetings,}
-    return committee
+	return committee
+
+def getSenateCommitteeByID(com_id):
+	url=mn_senate_base+'/committees/committee_members.php?ls=&cmte_id='+com_id
+	title,members,meetings=getSenateCommitteeMembers(url)
+	return makeCommitteeDict(title,members,meetings)
+
+def getSenateCommitteeMeetingsByID(com_id):
+	url=mn_senate_base+'/committees/committee_members.php?ls=&cmte_id='+com_id
+	response=get_contents_of_url(url)
+	if response!=None:
+		soup=BeautifulSoup(response)
+		meetings = soup.find('div','leg_Col1of4-Last HRDFlyer')
+	return meetings
+
+def getLegislatorIDByName(name):
+    legs=getCurrentLegislators()
+    for l in legs:
+        if name.find(l['first_name'][0])>=0 and name.find(l['last_name'])>=0:
+            return l['id']
+
+def getSenateCommitteeMembers(url):
+    response=get_contents_of_url(url)
+    if response!=None:
+        soup=BeautifulSoup(response)
+        title = soup.find('div','leg_PageContent').h2.text
+        title = title[:title.find('Membership')-1]
+        info = soup.find_all('div','leg_Col3of4-First HRDFlyer')
+        meetings = soup.find('div','leg_Col1of4-Last HRDFlyer')
+        items=info[0].find_all('td')
+        results=[]
+        for i in items:
+            t = [text for text in i.stripped_strings]
+            if t:
+                if t[0].find(':')>0:
+                    m={'name': t[1][:t[1].find(' (')],
+                        'role': t[0][:-1],
+                        'leg_id': getLegislatorIDByName(t[1][:t[1].find(' (')]),}
+                else:
+                    m={'name': t[0][:t[0].find(' (')],
+                        'role': 'member',
+                        'leg_id': getLegislatorIDByName(t[0][:t[0].find(' (')]),}
+                results.append(m)
+        return title, results, meetings
+
+def getHouseCommitteeByID(com_id):
+	data=getMNLegCommitteeById(com_id)
+	meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
+	return makeCommitteeDict(data['committee'],data['members'],meetings)
+
+def getHouseMeetingByID(com_id):
+	data=getMNLegCommitteeById(com_id)
+	meetings=parseHouseCommitteeMeetings(data['sources'][0]['url'])
+	return meetings
 
 def getHouseCommitteeMeetings(url):
     response=get_contents_of_url(url)
@@ -246,51 +285,83 @@ def parseHouseCommitteeMeetings(url):
             if meeting_text[0].p.p:
                 m=meeting_text[0].p.p
                 return [text for text in m.stripped_strings]
-            return meeting_text[0]
+            #return meeting_text[0]
     return None
 
-def getAllCommitteeMeetings(coms,parsed=False):
+# def getAllCommitteeMeetings(coms,parsed=False):
+# 	meetings=[]
+# 	if coms:
+# 		for c in coms:
+# 			data,meet=getCommitteeById(c['id']) # don't use this function
+# 			meetings.append((c['id'],meet))
+# 	return meetings
+
+def getSenComNameFromID(com_id):
+	url=mn_senate_base+'/committees/committee_members.php?ls=&cmte_id='+com_id
+	title,members,meetings=getSenateCommitteeMembers(url)
+	return title
+
+def getHouseMeetingAsEvent(date,com_id):
+	event={}
+	f=convertDateStringtoDate(date)
+	if f!=None:
+		dateString=str(f.tm_year)+'-'+str(f.tm_mon)+'-'+str(f.tm_mday)+' '+str(f.tm_hour)+':'+str(f.tm_min)+':00'
+		event['start']=dateString
+		event['type']='committee meeting'
+		event['url']='/committees/'+com_id
+	return event
+
+def getSenateMeetingAsEvent(com_id,link):
+	date = link.text
+	event={}
+	f=convertSenComMeetDateStringtoDate(date)
+	if f!=None:
+		event['title']=getSenComNameFromID(com_id)
+		dateString=str(f.tm_year)+'-'+str(f.tm_mon)+'-'+str(f.tm_mday)+' '+str(f.tm_hour)+':'+str(f.tm_min)+':00'
+		event['start']=dateString
+		event['type']='committee meeting'
+		event['url']='committees/'+getCommitteeIDFromURL(link['href'])
+	return event
+
+def getAllSenateCommitteeMeetings():
 	meetings=[]
+	coms=getSenateCommittees()
 	for c in coms:
-		data,meet=getCommitteeById(c['id'],parsed)
+		meet = getSenateCommitteeMeetingsByID(c['id'])
 		meetings.append((c['id'],meet))
 	return meetings
 
-def getSenateMeetingsAsEvents(meetings):
-	events=[]
-	for m in meetings:
-		links = m[1].find_all('a')
-        for l in links:
-        	date = l.text
-        	f=convertSenComMeetDateStringtoDate(date)
-        	event={}
-        	event['title']=m[0]
-        	event['day']=f.tm_mday
-        	event['month']=f.tm_mon
-        	event['year']=f.tm_year
-        	event['hour']=f.tm_hour
-        	event['min']=f.tm_min
-        	event['type']='committee meeting'
-        	event['url']='http://www.senate.leg.state.mn.us'+l['href']
-        	events.append(event)
-	return events
+def getAllHouseCommitteeMeetings():
+	meetings=[]
+	coms=getMNLegAllCommittees()
+	for c in coms:
+		meet=getHouseMeetingByID(c['id'])
+		meetings.append((c['id'],meet))
+	return meetings
 
 def getAllCommitteeMeetingsAsEvents():
 	meetings=getFromCache('all_committee_meetings')
 	if not meetings:
-		coms=getMNLegAllCommittees()
-		data=getAllCommitteeMeetings(coms,True)
-		meetings=getSenateMeetingsAsEvents(getAllCommitteeMeetings(getSenateCommittees()))
-		#meetings=[]
+		meetings=[]
+		sen_meet=getAllSenateCommitteeMeetings()
+		if sen_meet:
+			for m in sen_meet:
+				links=m[1].find_all('a')
+				if links:
+					for l in links:
+						event = getSenateMeetingAsEvent(m[0],l)
+						meetings.append(event)
+
+		data=getAllHouseCommitteeMeetings()
 		count=0
 		title_count=-1
 		room_count=-1
 		chair_count=-1
 		for com in data:
- 			for l in com[1]:
- 				if l in day_of_week:
- 					count=0
- 					date=''
+			for l in com[1]:
+				if l in day_of_week:
+					count=0
+					date=''
 		 			time=''
 		 			title_count=-1
 		 			room_count=-1
@@ -305,35 +376,27 @@ def getAllCommitteeMeetingsAsEvents():
 		 			date=l
 		 		elif count==2:
 		 			time=l
-		 			f=convertDateStringtoDate(date+' '+time)
-		 			if f!=None:
-		 				event['day']=f.tm_mday
-	 					event['month']=f.tm_mon
-	 					event['year']=f.tm_year
-	 					event['hour']=f.tm_hour
-	 					event['min']=f.tm_min
-	 					event['type']='committee meeting'
-	 					event['url']='/committees/'+com[0]
-	 			elif l=='Room:':
-	 				room_count=count+1
-	 			elif room_count==count:
-	 				room=l
-	 			elif l=='Chair:' or l=='Chairs':
-	 				chair_count=count+1
-	 			elif chair_count==count:
-	 				chair=l
-	 			elif l=='Agenda:':
-	 				title_count=count+1
-	 			elif title_count==count:
-	 				l=substitute_char(l,"'",'')
-	 				l=substitute_char(l,"&",'and')
-	 				if len(l)>50:
-	 					event['title']=l[:50]+'...'
-	 				else:
-	 					event['title']=l
-	 				event['description'] = 'Location: '+room+' Chair: '+chair
-	 				meetings.append(event)
- 		putInCache('all_committee_meetings',meetings)
+		 			event=getHouseMeetingAsEvent(date+' '+time,com[0])
+				elif l=='Room:':
+					room_count=count+1
+				elif room_count==count:
+					room=l
+				elif l=='Chair:' or l=='Chairs':
+					chair_count=count+1
+				elif chair_count==count:
+					chair=l
+				elif l=='Agenda:':
+					title_count=count+1
+				elif title_count==count:
+					l=substitute_char(l,"'",'')
+					l=substitute_char(l,"&",'and')
+					if len(l)>50:
+						event['title']=l[:50]+'...'
+					else:
+						event['title']=l
+					event['description'] = 'Location: '+room+' Chair: '+chair
+					meetings.append(event)
+		putInCache('all_committee_meetings',meetings)
 	return meetings
 
 #########################################################################################
@@ -449,29 +512,15 @@ def getAllDistrictsByID(chamber): # for full senate/house map pages
 	return all_data,hpvi
 
 def getAllEvents(): # events calendar page
-	events=getFromCache('events')
-	if not events:
+	all_events=getFromCache('all_events')
+	if not all_events:
 		events=[]
 		data=getMNLegAllEvents()
-		if data:
-	 		for d in data:
-		 		event={
-		 		'day':int(d['when'][8:10]),
-		 		'month':int(d['when'][5:7]),
-		 		'year':int(d['when'][:4]),
-		 		'hour':int(d['when'][11:13]),
-		 		'min':int(d['when'][14:16]),
-		 		'type':d['type'],
-		 		'title':d['description'],
-		 		'description':d['description'],
-		 		'url':'/events/'+d['id']}
-		 		events.append(event)
+		events=getAllEventsAsEvents(data)
 		meetings=getAllCommitteeMeetingsAsEvents()
-		if meetings:
-			for m in meetings:
-				events.append(m)
-	 	putInCache('events',events)
-	return events
+		all_events=meetings+events
+	 	putInCache('all_events',all_events)
+	return all_events
 
 def getEventById(event_id): # event page
 	params={'event_id':event_id}
@@ -490,29 +539,18 @@ def getAllCommittees(): # committees front page
 			return None
 	return data
 
-def getCommitteeById(com_id,parsed=False): # committee page
+def getCommitteeById(com_id): # committee page
 	data=getFromCache(com_id)
 	if not data:
 		if com_id[:2]=='MN':
-			data=getMNLegCommitteeById(com_id)
-			if data:
-				putInCache(com_id,data)
-			if parsed:
-				#meetings=getFromCache('meetings_parsed_'+com_id)
-				#if not meetings:
-				meetings=parseHouseCommitteeMeetings(data['sources'][0]['url'])
-					#putInCache('meetings_parsed_'+com_id,meetings)
-			else:
-				#meetings=getFromCache('meetings_'+com_id)
-				#if not meetings:
-				meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
-					#putInCache('meetings_'+com_id,meetings)
+			data=getHouseCommitteeByID(com_id)
+			# if data:
+			# 	putInCache(com_id,data)
 		else:
 			data=getSenateCommitteeByID(com_id)
-			if data:
+			#if data:
 				#putInCache(com_id,data)
-				meetings=data['meetings']
-	return data,meetings
+	return data
 
 def getCurrentLegislators(): # legislators page
 	data=cacheDance('legislators',getMNLegislatorByActive,)

@@ -267,7 +267,7 @@ class CommitteeHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['committee'],params['meetings']=getCommitteeById(com_id)
+            params['committee']=getCommitteeById(com_id)
             self.render(committee_page, **params)
 
 class AllEventsHandler(GenericHandler):

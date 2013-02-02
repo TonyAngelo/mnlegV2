@@ -15,9 +15,9 @@ user_re=re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 pass_re=re.compile(r"^.{3,20}$")
 email_re=re.compile(r"^[\S]+@[\S]+\.[\S]+$")
 
-var_re=re.compile(r'<var>[0-9]+\.[0-9]+</var>')
-markup_id_re=re.compile(r'<a id="pl\.[0-9]+\.[0-9]+"></a>')
-anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
+# var_re=re.compile(r'<var>[0-9]+\.[0-9]+</var>')
+# markup_id_re=re.compile(r'<a id="pl\.[0-9]+\.[0-9]+"></a>')
+# anchor_re=re.compile(r'<a id="bill[0-9.]+"></a>')
 
 SECRET = 'somesecretshityo'
 IP_URL="http://api.hostip.info/?ip="
@@ -50,7 +50,7 @@ def convertDateStringtoDate(time_string):
         return None
 
 def convertSenComMeetDateStringtoDate(date):
-    return time.strptime(l[0].text,'%A, %B %d, %Y%I:%M %p')
+    return time.strptime(date,'%A, %B %d, %Y%I:%M %p')
 
 def getMonthNumberFromString(s):
     return time.strptime(s,'%B').tm_mon

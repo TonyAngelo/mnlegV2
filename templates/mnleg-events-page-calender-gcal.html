@@ -27,7 +27,7 @@
 			{% for e in events %}
 				{
 					title: '{{e.title}}',
-					start: new Date(y, {{e.month}}-1, {{e.day}}, {{e.hour}}, {{e.min}}),
+					start: '{{e.start}}',
 					url: '{{e.url}}',
 					allDay: false,
 					{% if e.type!='committee meeting' %}
@@ -36,6 +36,11 @@
 					{% endif %}
 				},
 			{% endfor %}
+				{
+					title: 'dummy event',
+					start: new Date(y+1, m, d),
+					allDay: false,
+				}
 			]
 		});
 		
