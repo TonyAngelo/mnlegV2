@@ -63,6 +63,13 @@ thankyou_page="thankyou.html"
 sign_up_subject="Email from mnleg info site"
 sign_up_body="A new person has signed up for the site, their information is "
 
+event_types={
+    'senate':'senate',
+    'house':'house',
+    'other':'other',
+    'all':'all',
+}
+
 # misc functions
 def render_str(template, **params):
     t = jinja_env.get_template(template)
@@ -279,6 +286,19 @@ class AllEventsHandler(GenericHandler):
             params['events']=getAllEvents()
             self.render(all_events_page, **params)
 
+class EventsHandler(GenericHandler):
+    def get(self,events):
+        params=self.check_login('events')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            if events in event_types:
+                e=getAllEvents(events)
+                self.write(events+' retrived: ')
+                self.write(e)
+            else:
+                self.redirect("/")
+
 class EventHandler(GenericHandler):
     def get(self,event_id):
         params=self.check_login('events/'+event_id)
@@ -417,6 +437,7 @@ app = webapp2.WSGIApplication([
     ('/committees/?', AllCommitteesHandler),
     ('/committees/(MNC[0-9]+|[0-9]+)/?', CommitteeHandler),
     ('/events/?', AllEventsHandler),
+    ('/events/([a-z]*)/?', EventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?', AllDistrictsHandler),
     ('/districts/(house|senate)/?', ChamberDistrictsHandler),

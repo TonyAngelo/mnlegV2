@@ -305,19 +305,30 @@ def getHouseMeetingAsEvent(date,com_id):
 	event={}
 	f=convertDateStringtoDate(date)
 	if f!=None:
-		dateString=str(f.tm_year)+'-'+str(f.tm_mon)+'-'+str(f.tm_mday)+' '+str(f.tm_hour)+':'+str(f.tm_min)+':00'
+		month=checkDateLength(str(f.tm_mon))
+		day=checkDateLength(str(f.tm_mday))
+		minute=checkDateLength(str(f.tm_min))
+		dateString=str(f.tm_year)+'-'+month+'-'+day+' '+str(f.tm_hour)+':'+minute+':00'
 		event['start']=dateString
 		event['type']='committee meeting'
 		event['url']='/committees/'+com_id
 	return event
+
+def checkDateLength(date):
+	if len(date)==1:
+		date='0'+date
+	return date
 
 def getSenateMeetingAsEvent(com_id,link):
 	date = link.text
 	event={}
 	f=convertSenComMeetDateStringtoDate(date)
 	if f!=None:
+		month=checkDateLength(str(f.tm_mon))
+		day=checkDateLength(str(f.tm_mday))
+		minute=checkDateLength(str(f.tm_min))
 		event['title']=getSenComNameFromID(com_id)
-		dateString=str(f.tm_year)+'-'+str(f.tm_mon)+'-'+str(f.tm_mday)+' '+str(f.tm_hour)+':'+str(f.tm_min)+':00'
+		dateString=str(f.tm_year)+'-'+month+'-'+day+' '+str(f.tm_hour)+':'+minute+':00'
 		event['start']=dateString
 		event['type']='committee meeting'
 		event['url']='committees/'+getCommitteeIDFromURL(link['href'])
@@ -337,6 +348,72 @@ def getAllHouseCommitteeMeetings():
 	for c in coms:
 		meet=getHouseMeetingByID(c['id'])
 		meetings.append((c['id'],meet))
+	return meetings
+
+def getAllSenateCommitteeMeetingsAsEvents():
+	meetings=getFromCache('senate_committee_meetings')
+	if not meetings:
+		meetings=[]
+		sen_meet=getAllSenateCommitteeMeetings()
+		if sen_meet:
+			for m in sen_meet:
+				links=m[1].find_all('a')
+				if links:
+					for l in links:
+						event = getSenateMeetingAsEvent(m[0],l)
+						meetings.append(event)
+		putInCache('senate_committee_meetings',meetings)
+	return meetings
+
+def getAllHouseCommitteeMeetingsAsEvents():
+	meetings=getFromCache('house_committee_meetings')
+	if not meetings:
+		meetings=[]
+		data=getAllHouseCommitteeMeetings()
+		count=0
+		title_count=-1
+		room_count=-1
+		chair_count=-1
+		for com in data:
+			for l in com[1]:
+				if l in day_of_week:
+					count=0
+					date=''
+		 			time=''
+		 			title_count=-1
+		 			room_count=-1
+		 			chair_count=-1
+		 			room=''
+		 			chair=''
+		 			event={}
+		 		else:
+		 			count+=1
+
+		 		if count==1:
+		 			date=l
+		 		elif count==2:
+		 			time=l
+		 			event=getHouseMeetingAsEvent(date+' '+time,com[0])
+				elif l=='Room:':
+					room_count=count+1
+				elif room_count==count:
+					room=l
+				elif l=='Chair:' or l=='Chairs':
+					chair_count=count+1
+				elif chair_count==count:
+					chair=l
+				elif l=='Agenda:':
+					title_count=count+1
+				elif title_count==count:
+					l=substitute_char(l,"'",'')
+					l=substitute_char(l,"&",'and')
+					if len(l)>50:
+						event['title']=l[:50]+'...'
+					else:
+						event['title']=l
+					event['description'] = 'Location: '+room+' Chair: '+chair
+					meetings.append(event)
+		putInCache('house_committee_meetings',meetings)
 	return meetings
 
 def getAllCommitteeMeetingsAsEvents():
@@ -511,16 +588,25 @@ def getAllDistrictsByID(chamber): # for full senate/house map pages
 	hpvi=getHPVIbyChamber(chamber)
 	return all_data,hpvi
 
-def getAllEvents(): # events calendar page
-	all_events=getFromCache('all_events')
-	if not all_events:
-		events=[]
+def getAllEvents(which='all'): # events calendar page
+	# all_events=getFromCache('all_events')
+	# if not all_events:
+	events=[]
+	if which=='senate':
+		events=getAllSenateCommitteeMeetingsAsEvents()
+	elif which=='house':
+		events=getAllHouseCommitteeMeetingsAsEvents()
+	elif which=='other':
 		data=getMNLegAllEvents()
 		events=getAllEventsAsEvents(data)
-		meetings=getAllCommitteeMeetingsAsEvents()
-		all_events=meetings+events
-	 	putInCache('all_events',all_events)
-	return all_events
+	elif which=='all':
+		house=getAllHouseCommitteeMeetingsAsEvents()
+		senate=getAllSenateCommitteeMeetingsAsEvents()
+		data=getMNLegAllEvents()
+		other=getAllEventsAsEvents(data)
+		events=senate+house+other
+	 	# putInCache('all_events',all_events)
+	return events
 
 def getEventById(event_id): # event page
 	params={'event_id':event_id}
