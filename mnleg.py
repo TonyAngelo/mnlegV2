@@ -154,11 +154,6 @@ def getAllEventsAsEvents(data):
 		for d in data:
 			event={
 			'start':d['when'][:4]+'-'+d['when'][5:7]+'-'+d['when'][8:10]+' '+d['when'][11:13]+':'+d['when'][14:16]+':00',
-	 		# 'day':int(d['when'][8:10]),
-	 		# 'month':int(d['when'][5:7]),
-	 		# 'year':int(d['when'][:4]),
-	 		# 'hour':int(d['when'][11:13]),
-	 		# 'min':int(d['when'][14:16]),
 	 		'type':d['type'],
 	 		'title':d['description'],
 	 		'description':d['description'],
@@ -285,16 +280,7 @@ def parseHouseCommitteeMeetings(url):
             if meeting_text[0].p.p:
                 m=meeting_text[0].p.p
                 return [text for text in m.stripped_strings]
-            #return meeting_text[0]
     return None
-
-# def getAllCommitteeMeetings(coms,parsed=False):
-# 	meetings=[]
-# 	if coms:
-# 		for c in coms:
-# 			data,meet=getCommitteeById(c['id']) # don't use this function
-# 			meetings.append((c['id'],meet))
-# 	return meetings
 
 def getSenComNameFromID(com_id):
 	url=mn_senate_base+'/committees/committee_members.php?ls=&cmte_id='+com_id
@@ -349,6 +335,14 @@ def getAllHouseCommitteeMeetings():
 		meet=getHouseMeetingByID(c['id'])
 		meetings.append((c['id'],meet))
 	return meetings
+
+def getAllOtherEventsAsEvents():
+	events=getFromCache('all_other_events')
+	if not events:
+		data=getMNLegAllEvents()
+		events=getAllEventsAsEvents(data)
+		putInCache('all_other_events',events)
+	return events
 
 def getAllSenateCommitteeMeetingsAsEvents():
 	meetings=getFromCache('senate_committee_meetings')
@@ -414,66 +408,6 @@ def getAllHouseCommitteeMeetingsAsEvents():
 					event['description'] = 'Location: '+room+' Chair: '+chair
 					meetings.append(event)
 		putInCache('house_committee_meetings',meetings)
-	return meetings
-
-def getAllCommitteeMeetingsAsEvents():
-	meetings=getFromCache('all_committee_meetings')
-	if not meetings:
-		meetings=[]
-		sen_meet=getAllSenateCommitteeMeetings()
-		if sen_meet:
-			for m in sen_meet:
-				links=m[1].find_all('a')
-				if links:
-					for l in links:
-						event = getSenateMeetingAsEvent(m[0],l)
-						meetings.append(event)
-
-		data=getAllHouseCommitteeMeetings()
-		count=0
-		title_count=-1
-		room_count=-1
-		chair_count=-1
-		for com in data:
-			for l in com[1]:
-				if l in day_of_week:
-					count=0
-					date=''
-		 			time=''
-		 			title_count=-1
-		 			room_count=-1
-		 			chair_count=-1
-		 			room=''
-		 			chair=''
-		 			event={}
-		 		else:
-		 			count+=1
-
-		 		if count==1:
-		 			date=l
-		 		elif count==2:
-		 			time=l
-		 			event=getHouseMeetingAsEvent(date+' '+time,com[0])
-				elif l=='Room:':
-					room_count=count+1
-				elif room_count==count:
-					room=l
-				elif l=='Chair:' or l=='Chairs':
-					chair_count=count+1
-				elif chair_count==count:
-					chair=l
-				elif l=='Agenda:':
-					title_count=count+1
-				elif title_count==count:
-					l=substitute_char(l,"'",'')
-					l=substitute_char(l,"&",'and')
-					if len(l)>50:
-						event['title']=l[:50]+'...'
-					else:
-						event['title']=l
-					event['description'] = 'Location: '+room+' Chair: '+chair
-					meetings.append(event)
-		putInCache('all_committee_meetings',meetings)
 	return meetings
 
 #########################################################################################
@@ -589,23 +523,18 @@ def getAllDistrictsByID(chamber): # for full senate/house map pages
 	return all_data,hpvi
 
 def getAllEvents(which='all'): # events calendar page
-	# all_events=getFromCache('all_events')
-	# if not all_events:
 	events=[]
 	if which=='senate':
 		events=getAllSenateCommitteeMeetingsAsEvents()
 	elif which=='house':
 		events=getAllHouseCommitteeMeetingsAsEvents()
 	elif which=='other':
-		data=getMNLegAllEvents()
-		events=getAllEventsAsEvents(data)
+		events=getAllOtherEventsAsEvents()
 	elif which=='all':
 		house=getAllHouseCommitteeMeetingsAsEvents()
 		senate=getAllSenateCommitteeMeetingsAsEvents()
-		data=getMNLegAllEvents()
-		other=getAllEventsAsEvents(data)
+		other=getAllOtherEventsAsEvents()
 		events=senate+house+other
-	 	# putInCache('all_events',all_events)
 	return events
 
 def getEventById(event_id): # event page

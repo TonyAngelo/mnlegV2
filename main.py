@@ -24,7 +24,7 @@ from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_ht
 from mnleg import (getSessionNames,getBillNames,getBillById,getBillText,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
-                    getAllCommittees,getCommitteeById,getAllCommitteeMeetingsAsEvents,
+                    getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,getCurrentBills,
                     getAllDistricts,getDistrictById,
                     getBillsbyAuthor,getBillsbyKeyword,)
@@ -167,11 +167,19 @@ class SessionsHandler(GenericHandler):
             self.redirect('/signup')
         else:
             keyword=self.request.get("k")
+            leg=self.request.get("l")
             if keyword:
                 sort=self.request.get("s")
                 s=getSortValue(sort)
-                params['keyword']=self.request.get("keyword")
+                params['keyword']=keyword
                 params['bills']=getBillsbyKeyword(keyword,s)
+                self.render(bills_search_results_page, **params)
+            elif leg:
+                sort=self.request.get("s")
+                s=getSortValue(sort)
+                params['keyword']=keyword
+                params['author']=leg
+                params['bills']=getBillsbyAuthor(params['author'],sort=s)
                 self.render(bills_search_results_page, **params)
             else:
                 params["sessions"],params["details"]=getSessionNames()
@@ -189,12 +197,14 @@ class SessionsHandler(GenericHandler):
             self.render(bill_info_page, **params)
         elif submit=='Search by Keyword':
             params['keyword']=self.request.get("keyword")
-            params['bills']=getBillsbyKeyword(params['keyword'])
-            self.render(bills_search_results_page, **params)
+            # params['bills']=getBillsbyKeyword(params['keyword'])
+            # self.render(bills_search_results_page, **params)
+            self.redirect('/bills?k='+params['keyword'])
         else:
             params['author']=self.request.get("leg")
-            params['bills']=getBillsbyAuthor(params['author'])
-            self.render(bills_search_results_page, **params)
+            # params['bills']=getBillsbyAuthor(params['author'])
+            # self.render(bills_search_results_page, **params)
+            self.redirect('/bills?l='+params['author'])
         
 class BillsHandler(GenericHandler):
     def get(self,path):
