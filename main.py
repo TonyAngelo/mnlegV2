@@ -26,7 +26,7 @@ from mnleg import (getSessionNames,getBillNames,getBillById,getBillText,
                     getLegislatorByDistrict,getAllDistrictsByID,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,getCurrentBills,
-                    getAllDistricts,getDistrictById,
+                    getAllDistricts,getDistrictById,cronEvents,
                     getBillsbyAuthor,getBillsbyKeyword,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
@@ -309,6 +309,19 @@ class EventsHandler(GenericHandler):
             else:
                 self.redirect("/")
 
+class CronEventsHandler(GenericHandler):
+    def get(self,events):
+        params=self.check_login('events')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            if events in event_types:
+                e=cronEvents(events)
+                self.write(events+' retrived: ')
+                self.write(e)
+            else:
+                self.redirect("/")
+
 class EventHandler(GenericHandler):
     def get(self,event_id):
         params=self.check_login('events/'+event_id)
@@ -447,7 +460,7 @@ app = webapp2.WSGIApplication([
     ('/committees/?', AllCommitteesHandler),
     ('/committees/(MNC[0-9]+|[0-9]+)/?', CommitteeHandler),
     ('/events/?', AllEventsHandler),
-    ('/events/([a-z]*)/?', EventsHandler),
+    ('/cron/events/([a-z]*)/?', CronEventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?', AllDistrictsHandler),
     ('/districts/(house|senate)/?', ChamberDistrictsHandler),

@@ -15,8 +15,10 @@
 <body>
 {% endif %}
   {% include 'header.html' %}
-  {% block content %}
-  {% endblock %}
+  <div id="content">
+    {% block content %}
+    {% endblock %}
+  </div>
   {% include 'footer.html' %}
 </body>
 </html>

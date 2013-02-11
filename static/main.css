@@ -5,7 +5,7 @@ body {
 
     width: 800px;
     margin: 0 auto;
-    padding: 10px;
+    /*padding: 10px;*/
     color: #333;
 }
 
@@ -16,38 +16,71 @@ body {
 
 #front-dashboard-container {
     /*border: 1px solid black;*/
-    height:auto;
+    /*height:auto;*/
+}
+
+#front-dashboard-container h3 {
+    color: #4874A5;
+    margin: 0px 0px 15px 0px;
+}
+
+#front-dashboard-container a {
+    text-decoration: none;
 }
 
 #front-leg-charts-container {
-    /*border: 1px solid black;*/
-    display: inline;
-    float:right;
     padding: 0px 20px;
 }
 
 #front-house-daily {
     /*border: 1px solid black;*/
-    width: 200px;
-    display: inline;
-    float: left;
+    width: 250px;
+    display: inline-block;
+    vertical-align:top;
     padding: 10px;
 }
 
 #front-townhalls {
     /*border: 1px solid black;*/
     width: 200px;
-    display: inline;
-    float: right;
+    display: inline-block;
+    vertical-align:top;
     padding: 10px;
 }
 
 #current-bills {
     /*border: 1px solid black;*/
     width: 330px;
-    display: inline;
-    float:left;
+    display: inline-block;
+    vertical-align:top;
     padding: 10px;
+}
+
+.front-item-container{
+    margin: 10px 0px 10px 0px;
+}
+
+.front-item-box {
+    display: inline-block;
+    height: 35px; /*Specify Height*/
+    width:  50px; /*Specify Width*/
+    border: 1px solid #2E3041; /*Add 1px solid border, use any color you want*/
+    background-color: #2E3041; /*Add a background color to the box*/
+    text-align:center;
+    vertical-align:top;
+    padding: 0px 0px 0px 0px;
+}
+
+.front-item-box a {
+    color:#FFFFFF;
+    /*text-decoration: none;*/
+    vertical-align:middle;
+}
+
+.front-item-text {
+    display: inline-block;
+    width:  75%;
+    margin: 0px 0px 0px 5px;
 }
 
 .breadcrumb {
@@ -100,29 +133,66 @@ h2 {
     color:red;
 }
 
+#header {
+    height: 50px;
+    background-color: #2E3041;
+}
+
+#content {
+    /*display: block;*/
+    /*width: 800px;*/
+    margin: 15px 0px 0px 0px;
+    /*border: 1px solid black;*/
+}
+
 #main-title {
-    display: block;
-    color: #222;
+    display: inline-block;
+    /*float: left;*/
+    color: #FFFFFF;
     font-size: 2em;
     font-weight: bold;
     text-align: center;
-    margin-bottom: 5px;
+    margin: 15px 5px 0px 10px;
     text-decoration: none;
 }
 
 #main-title a {
     text-decoration: none;
-    color:#222;
+    color:#FFFFFF;
+}
+
+#tagline {
+    display: inline-block;
+    color: #A0C3E9;
+    font-size: 1em;
+    margin: 0px 5px 0px 5px;
+    /*margin: 15px 5px 0px 10px;*/
+    text-decoration: none;
 }
 
 #menu-bar {
-    text-align: center;
-    font-size: 1.25em;
+    display: inline-block;
+    /*float: right;*/
+    margin: 0px 5px 0px 40px;
 } 
 
 #menu-bar a {
     text-decoration: none;
+    color: #FFFFFF;
 } 
+
+.menu-item {
+    margin: 0px 7px 0px 7px;
+    text-align: center;
+    font-weight: bold;
+    font-size: .85em;
+    color: #FFFFFF;
+}
+
+.menu-item a {
+    text-decoration: none;
+    color: #FFFFFF;
+}
 
 #sub-menu-bar {
     text-align: center;

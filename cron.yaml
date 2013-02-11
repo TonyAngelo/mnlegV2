@@ -1,0 +1,7 @@
+cron:
+- description: house events
+  url: /cron/events/house
+  schedule: every 3 hours
+- description: senate events
+  url: /cron/events/senate
+  schedule: every 3 hours

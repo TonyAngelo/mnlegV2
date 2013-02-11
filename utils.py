@@ -93,8 +93,11 @@ def getFromCache(key):
     result=memcache.get(key)
     return result
 
-def putInCache(key,data,time=86400):
-    memcache.set(key,data,time=time)
+def putInCache(key,data,time=None):
+    if time==None:
+        memcache.set(key,data)
+    else:
+        memcache.set(key,data,time=time)
 
 def get_contents_of_url(url):
     try:
@@ -123,8 +126,10 @@ def get_coords(ip):
             return db.GeoPt(lat,lon)
 
 def substitute_char(s,char,sub):
-    result = re.sub(char,sub,s)
-    return result
+    if s:
+        result = re.sub(char,sub,s)
+        return result
+    return None
 
 def check_valid_entry(entry,check):
     result=""

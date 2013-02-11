@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script type='text/javascript' src="/js/google-charts.js"></script>
+<div id='front-dashboard-container'>
+
+	<div id='current-bills'>
+		<h3>Recently Updated Bills</h3>
+		{% for b in current_bills %}
+			<div class="bill-summery"><div class="bill-summery-file">
+			<a href="/bills/{{b.session}}/{{b.bill_id}}">{{b.bill_id[:2]}}<br><span style="font-weight:bold;">{{b.bill_id[3:]}}</span></a></div>
+			<div class="bill-summery-text">{{b.title}}</div></div>
+		{% endfor %}
+	</div>
+
+	<div id='front-house-daily'>
+		<b>{{house_daily_title}}</b>
+		<br><br>
+		{% for i in house_daily_items %}
+			<a href="{{i.link}} target="_blank"">{{i.title}}</a> - <em>{{i.published[:7]}}</em>
+			<br><br>
+		{% endfor %}
+	</div>
+
+	<div id='front-leg-charts-container'>
+		<table>
+			<tr><td><div style="text-align:center;"><b>Senators</b></div></td></tr>
+			<tr><td><div id="mn_sen_pie_div" style="width: 170px; height: 150px;"></div></td></tr>
+			<tr><td><div style="text-align:center;"><b>Represenatives</b></div></td></tr>
+			<tr><td><div id="mn_house_pie_div" style="width: 170px; height: 150px;"></div></td></tr>
+		</table>
+	</div>
+
+	<div id='front-townhalls'>
+		<b>{{dfl_townhalls_title}}</b>
+		<br><br>
+		{% for d in dfl_townhalls %}
+			<a href="{{d.link}} target="_blank"" >{{d.title}}</a>
+			<br><br>
+		{% endfor %}
+		<br><br>
+		<b>{{gop_townhalls_title}}</b>
+		<br><br>
+		{% for r in gop_townhalls %}
+			<a href="{{r.link}} target="_blank"">{{r.title}}</a>
+			<br><br>
+		{% endfor %}
+	</div>
+
+</div>
+{% endblock %}
+
+
+

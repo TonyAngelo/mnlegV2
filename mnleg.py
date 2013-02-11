@@ -276,7 +276,7 @@ def parseHouseCommitteeMeetings(url):
     if response!=None:
         soup=BeautifulSoup(response)
         meeting_text = soup.find_all('div','leg_col1of3-Last')
-        if meeting_text[0]:
+        if meeting_text:
             if meeting_text[0].p.p:
                 m=meeting_text[0].p.p
                 return [text for text in m.stripped_strings]
@@ -323,17 +323,19 @@ def getSenateMeetingAsEvent(com_id,link):
 def getAllSenateCommitteeMeetings():
 	meetings=[]
 	coms=getSenateCommittees()
-	for c in coms:
-		meet = getSenateCommitteeMeetingsByID(c['id'])
-		meetings.append((c['id'],meet))
+	if coms:
+		for c in coms:
+			meet = getSenateCommitteeMeetingsByID(c['id'])
+			meetings.append((c['id'],meet))
 	return meetings
 
 def getAllHouseCommitteeMeetings():
 	meetings=[]
 	coms=getMNLegAllCommittees()
-	for c in coms:
-		meet=getHouseMeetingByID(c['id'])
-		meetings.append((c['id'],meet))
+	if coms:
+		for c in coms:
+			meet=getHouseMeetingByID(c['id'])
+			meetings.append((c['id'],meet))
 	return meetings
 
 def getAllOtherEventsAsEvents():
@@ -341,72 +343,74 @@ def getAllOtherEventsAsEvents():
 	if not events:
 		data=getMNLegAllEvents()
 		events=getAllEventsAsEvents(data)
-		putInCache('all_other_events',events)
+		putInCache('all_other_events',events,86400)
 	return events
 
 def getAllSenateCommitteeMeetingsAsEvents():
-	meetings=getFromCache('senate_committee_meetings')
-	if not meetings:
-		meetings=[]
-		sen_meet=getAllSenateCommitteeMeetings()
-		if sen_meet:
-			for m in sen_meet:
-				links=m[1].find_all('a')
-				if links:
-					for l in links:
-						event = getSenateMeetingAsEvent(m[0],l)
-						meetings.append(event)
+	# meetings=getFromCache('senate_committee_meetings')
+	# if not meetings:
+	meetings=[]
+	sen_meet=getAllSenateCommitteeMeetings()
+	if sen_meet:
+		for m in sen_meet:
+			links=m[1].find_all('a')
+			if links:
+				for l in links:
+					event = getSenateMeetingAsEvent(m[0],l)
+					meetings.append(event)
 		putInCache('senate_committee_meetings',meetings)
 	return meetings
 
 def getAllHouseCommitteeMeetingsAsEvents():
-	meetings=getFromCache('house_committee_meetings')
-	if not meetings:
-		meetings=[]
-		data=getAllHouseCommitteeMeetings()
-		count=0
-		title_count=-1
-		room_count=-1
-		chair_count=-1
+	# meetings=getFromCache('house_committee_meetings')
+	# if not meetings:
+	meetings=[]
+	data=getAllHouseCommitteeMeetings()
+	count=0
+	title_count=-1
+	room_count=-1
+	chair_count=-1
+	if data:
 		for com in data:
-			for l in com[1]:
-				if l in day_of_week:
-					count=0
-					date=''
-		 			time=''
-		 			title_count=-1
-		 			room_count=-1
-		 			chair_count=-1
-		 			room=''
-		 			chair=''
-		 			event={}
-		 		else:
-		 			count+=1
+			if com[1]:
+				for l in com[1]:
+					if l in day_of_week:
+						count=0
+						date=''
+			 			time=''
+			 			title_count=-1
+			 			room_count=-1
+			 			chair_count=-1
+			 			room=''
+			 			chair=''
+			 			event={}
+			 		else:
+			 			count+=1
 
-		 		if count==1:
-		 			date=l
-		 		elif count==2:
-		 			time=l
-		 			event=getHouseMeetingAsEvent(date+' '+time,com[0])
-				elif l=='Room:':
-					room_count=count+1
-				elif room_count==count:
-					room=l
-				elif l=='Chair:' or l=='Chairs':
-					chair_count=count+1
-				elif chair_count==count:
-					chair=l
-				elif l=='Agenda:':
-					title_count=count+1
-				elif title_count==count:
-					l=substitute_char(l,"'",'')
-					l=substitute_char(l,"&",'and')
-					if len(l)>50:
-						event['title']=l[:50]+'...'
-					else:
-						event['title']=l
-					event['description'] = 'Location: '+room+' Chair: '+chair
-					meetings.append(event)
+			 		if count==1:
+			 			date=l
+			 		elif count==2:
+			 			time=l
+			 			event=getHouseMeetingAsEvent(date+' '+time,com[0])
+					elif l=='Room:':
+						room_count=count+1
+					elif room_count==count:
+						room=l
+					elif l=='Chair:' or l=='Chairs':
+						chair_count=count+1
+					elif chair_count==count:
+						chair=l
+					elif l=='Agenda:':
+						title_count=count+1
+					elif title_count==count:
+						l=substitute_char(l,"'",'')
+						l=substitute_char(l,"&",'and')
+						if len(l)>50:
+							event['title']=l[:50]+'...'
+						else:
+							event['title']=l
+						event['description'] = 'Location: '+room+' Chair: '+chair
+						meetings.append(event)
 		putInCache('house_committee_meetings',meetings)
 	return meetings
 
@@ -522,17 +526,25 @@ def getAllDistrictsByID(chamber): # for full senate/house map pages
 	hpvi=getHPVIbyChamber(chamber)
 	return all_data,hpvi
 
-def getAllEvents(which='all'): # events calendar page
+def cronEvents(which):
 	events=[]
 	if which=='senate':
 		events=getAllSenateCommitteeMeetingsAsEvents()
 	elif which=='house':
 		events=getAllHouseCommitteeMeetingsAsEvents()
+	return events
+
+def getAllEvents(which='all'): # events calendar page
+	events=[]
+	if which=='senate':
+		events=getFromCache('senate_committee_meetings')
+	elif which=='house':
+		events=getFromCache('house_committee_meetings')
 	elif which=='other':
 		events=getAllOtherEventsAsEvents()
 	elif which=='all':
-		house=getAllHouseCommitteeMeetingsAsEvents()
-		senate=getAllSenateCommitteeMeetingsAsEvents()
+		house=getFromCache('house_committee_meetings')
+		senate=getFromCache('senate_committee_meetings')
 		other=getAllOtherEventsAsEvents()
 		events=senate+house+other
 	return events
@@ -547,8 +559,8 @@ def getAllCommittees(): # committees front page
 	if not data:
 		house=getMNLegAllCommittees()
 		senate=getSenateCommittees()
-		data=senate+house
-		if data:
+		if house and senate:
+			data=senate+house
 	 		putInCache('committees',data)
 		else:
 			return None

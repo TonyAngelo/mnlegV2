@@ -11,19 +11,19 @@
 	<li><a href="#committee-tabs-1">Senate</a></li>
     <li><a href="#committee-tabs-2">House</a></li></ul>
 <div id="committee-tabs-1">
-    <p>{% for c in committees %}
+    <p>{% if committees %}{% for c in committees %}
 			{% if c.chamber=='upper' %}
 				<a href='/committees/{{c.id}}'>{{c.committee}}</a><br>
 			{% endif %}
-		{% endfor %}
+		{% endfor %}{% endif %}
 	</p>
 </div>
 <div id="committee-tabs-2">
-    <p>{% for c in committees %}
+    <p>{% if committees %}{% for c in committees %}
 			{% if c.chamber=='lower' %}
 				<a href='/committees/{{c.id}}'>{{c.committee}}</a><br>
 			{% endif %}	
-		{% endfor %}
+		{% endfor %}{% endif %}
     </p>
 </div>
 </div>
