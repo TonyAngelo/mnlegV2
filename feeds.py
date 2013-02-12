@@ -8,25 +8,16 @@ mn_townhalls={
 	'gop':['http://www.house.leg.state.mn.us/rss/townhallgop.asp','GOP town hall meetings - Minnesota House of Representatives'],
 }
 
-house_daily_key='Session Daily - Minnesota House of Representatives'
-
 def getFeed(link):
 	return feedparser.parse(link)
 
 def getMNHouseSessionDaily(n=10):
-	global house_daily_key
 	results=[]
-	f=getFromCache(house_daily_key)
-	if not f:
-		f = getFeed(mn_house_session_daily)
-		for i in range(n):
-			if f['entries']:
-				results.append(f['entries'].pop(0))
-		house_daily_key=f['feed']['title']
-		putInCache(house_daily_key,results)
-		return house_daily_key,results
-	else:
-		return house_daily_key,f
+	f = getFeed(mn_house_session_daily)
+	for i in range(n):
+		if f['entries']:
+			results.append(f['entries'].pop(0))
+	putInCache('Session Daily',results)
 
 def getTownhallFeed(party,n=5):
 	global mn_townhalls
@@ -38,7 +29,7 @@ def getTownhallFeed(party,n=5):
 			if f['entries']:
 				results.append(f['entries'].pop(0))
 		mn_townhalls[party][1]=f['feed']['title']
-		putInCache(mn_townhalls[party][1],results)
+		putInCache(mn_townhalls[party][1],results,86400)
 		return mn_townhalls[party][1],results
 	else:
 		return mn_townhalls[party][1],f

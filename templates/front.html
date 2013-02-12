@@ -6,20 +6,20 @@
 
 	<div id='current-bills'>
 		<h3>Recently Updated Bills</h3>
-		{% for b in current_bills %}
+		{% if current_bills %}{% for b in current_bills %}
 			<div class="front-item-container"><div class="front-item-box">
 			<a href="/bills/{{b.session}}/{{b.bill_id}}">{{b.bill_id[:2]}}<br><span style="font-weight:bold;">{{b.bill_id[3:]}}</span></a></div>
 			<div class="front-item-text">{{b.title}}</div></div>
-		{% endfor %}
+		{% endfor %}{% endif %}
 	</div>
 
 	<div id='front-house-daily'>
 		<h3>Session Daily</h3>
-		{% for i in house_daily_items %}
+		{% if house_daily_items %}{% for i in house_daily_items %}
 			<div class="front-item-container"><div class="front-item-box">
 			<a href="{{i.link}} target="_blank"">{{i.published[:3]}}<br><span style="font-weight:bold;">{{i.published[5:7]}}</a></div>
 			<div class="front-item-text">{{i.title}}</div></div>
-		{% endfor %}
+		{% endfor %}{% endif %}
 	</div>
 
 </div>

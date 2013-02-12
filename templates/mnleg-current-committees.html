@@ -12,8 +12,8 @@
     <li><a href="#committee-tabs-2">House</a></li></ul>
 <div id="committee-tabs-1">
     <p>{% if committees %}{% for c in committees %}
-			{% if c.chamber=='upper' %}
-				<a href='/committees/{{c.id}}'>{{c.committee}}</a><br>
+			{% if c.chamber=='upper' %}{% if c.subcommittee %}<span style="margin-left:25px;">{% else %}<span>{% endif %}
+				<a href='/committees/{{c.id}}'>{{c.committee}}{% if c.subcommittee %} - {{c.subcommittee}}{% endif %}</a></span><br>
 			{% endif %}
 		{% endfor %}{% endif %}
 	</p>

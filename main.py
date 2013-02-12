@@ -81,7 +81,7 @@ def render_signup_email_body(user,email,user_ip):
 def updateBillInfoPageParams(params,bill,session):
     params['bill_info']=getBillById(bill,session)
     url=params['bill_info']['versions'][-1]['url']
-    params['bill_text']=getBillText(url)
+    #params['bill_text']=getBillText(url)
 
 def get_chamber_name(chamber):
     if chamber=="House":
@@ -109,16 +109,16 @@ class GenericHandler(webapp2.RequestHandler):
 
     def districts_render(self, chamber, **kw):
         page=self.render_str(all_districts_page, **kw)
-        if chamber=='house':
-            putInCache(chamber+'_districts_page1',page[:len(page)/2])
-            putInCache(chamber+'_districts_page2',page[len(page)/2:])
-        else:
-            putInCache(chamber+'_districts_page',page)
+        # if chamber=='house':
+        #     putInCache(chamber+'_districts_page1',page[:len(page)/2])
+        #     putInCache(chamber+'_districts_page2',page[len(page)/2:])
+        # elif chamber=='senate':
+        #     putInCache(chamber+'_districts_page',page)
         self.write(page)
 
     def district_render(self, district, **kw):
         page=self.render_str(district_page, **kw)
-        putInCache('district '+district,page)
+        #putInCache('district '+district,page)
         self.write(page)
 
     def set_secure_cookie(self,name,val):
@@ -154,11 +154,19 @@ class GenericHandler(webapp2.RequestHandler):
 class MainHandler(GenericHandler):
     def get(self):
         params=self.check_login("/")
-        params['house_daily_title'],params['house_daily_items'] = getMNHouseSessionDaily()
-        params['current_bills']=getCurrentBills()
-        params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
-        params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
+        params['house_daily_items']=getFromCache('Session Daily')
+        params['current_bills']=getFromCache('Current Bills')
+        #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
+        #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
         self.render(main_page, **params)
+
+class CronMainHandler(GenericHandler):
+    def get(self):
+        getMNHouseSessionDaily()
+        getCurrentBills()
+        #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
+        #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
+        self.write('Main page cron event fired')
 
 class SessionsHandler(GenericHandler):
     def get(self):
@@ -351,20 +359,22 @@ class ChamberDistrictsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            if chamber=="house":
-                params['district_map']='lower'
-                p1=getFromCache(chamber+'_districts_page1')
-                p2=getFromCache(chamber+'_districts_page2')
-                if p1 and p2:
-                    page=p1+p2
-            else:
-                params['district_map']='upper'
-                page=getFromCache(chamber+'_districts_page')
-            if not page:
-                params['districts'],params['hpvi']=getAllDistrictsByID(params['district_map'])
-                self.districts_render(chamber, **params)
-            else:
-                self.write(page)
+            # if chamber=="house":
+            #     params['district_map']='lower'
+            #     p1=getFromCache(chamber+'_districts_page1')
+            #     p2=getFromCache(chamber+'_districts_page2')
+            #     if p1 and p2:
+            #         page=p1+p2
+            #     else:
+            #         page=None
+            # elif chamber=="senate":
+            #     params['district_map']='upper'
+            #     page=getFromCache(chamber+'_districts_page')
+            # if not page:
+            params['districts'],params['hpvi']=getAllDistrictsByID(params['district_map'])
+            self.districts_render(chamber, **params)
+            # else:
+            #     self.write(page)
 
 class DistrictHandler(GenericHandler):
     def get(self,district_id):
@@ -372,14 +382,14 @@ class DistrictHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            page=getFromCache('district '+district_id)
-            if not page:
-                data=getDistrictById(district_id)
-                params['data']=data
-                params['district_map']='True'
-                self.district_render(district_id, **params)
-            else:
-                self.write(page)
+            # page=getFromCache('district '+district_id)
+            # if not page:
+            data=getDistrictById(district_id)
+            params['data']=data
+            params['district_map']='True'
+            self.district_render(district_id, **params)
+            # else:
+            #     self.write(page)
 
 class SignupPage(GenericHandler):
     def get(self):
@@ -452,6 +462,7 @@ class ClearCachePage(GenericHandler):
 # paths
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
+    ('/cron/front/?', CronMainHandler),
     ('/bills/?', SessionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),

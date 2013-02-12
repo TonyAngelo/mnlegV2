@@ -7,6 +7,10 @@ from utils import (get_contents_of_url,getFromCache,putInCache,cacheDance,substi
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 
+time_hour_1=3600
+time_hour_3=3600
+time_hour_24=86400
+
 API_KEY='4a26c19c3cae4f6c843c3e7816475fae'
 base_url='http://openstates.org/api/v1/'
 apikey_url="apikey="
@@ -55,6 +59,11 @@ def getMNLegEventById(event_id):
 def getMNLegAllCommittees():
 	#http://openstates.org/api/v1/committees/?state=mn&apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'committees/?state=mn&'+apikey_url+API_KEY
+	return sendGetRequest(url)
+
+def getMNLegCommitteesByChamber(chamber):
+	#http://openstates.org/api/v1/committees/?state=mn&apikey=4a26c19c3cae4f6c843c3e7816475fae
+	url=base_url+'committees/?state=mn&chamber='+chamber+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
 def getMNLegCommitteeById(com_id):
@@ -169,6 +178,8 @@ def getSenateCommitteeAV(url):
 
 def getCommitteeIDFromURL(url):
     #http://www.senate.mn/committees/committee_media_list.php?cmte_id=1002
+    if url.find('&')>0:
+    	url=url[:url.find('&')]
     return url[url.find('cmte_id=')+len('cmte_id='):]
 
 def getSenateCommittees():
@@ -252,9 +263,12 @@ def getSenateCommitteeMembers(url):
                 results.append(m)
         return title, results, meetings
 
-def getHouseCommitteeByID(com_id):
+def getCommitteeByID(com_id):
 	data=getMNLegCommitteeById(com_id)
-	meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
+	if data['chamber']=='lower':
+		meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
+	elif data['chamber']=='upper':
+		meetings=getSenateCommitteeMeetingsByID(getCommitteeIDFromURL(data['sources'][0]['url']))
 	return makeCommitteeDict(data['committee'],data['members'],meetings)
 
 def getHouseMeetingByID(com_id):
@@ -343,7 +357,7 @@ def getAllOtherEventsAsEvents():
 	if not events:
 		data=getMNLegAllEvents()
 		events=getAllEventsAsEvents(data)
-		putInCache('all_other_events',events,86400)
+		putInCache('all_other_events',events,time_hour_24)
 	return events
 
 def getAllSenateCommitteeMeetingsAsEvents():
@@ -419,30 +433,31 @@ def getAllHouseCommitteeMeetingsAsEvents():
 #########################################################################################
 
 def getCurrentBills(n=10): # front page recent bills
-	params={'n':n}
-	data=cacheDance('Current Bills',getMNLegBillsCurrent, **params)
-	return data
+	data = getMNLegBillsCurrent(n)
+	if data:
+		putInCache('Current Bills',data)
 
 def getBillsbyKeyword(keyword,sort=True): # bills search page 
 	params={'keyword':keyword}
-	data=cacheDance('query='+keyword,getMNLegBillsbyKeyword, **params)
+	data=cacheDance('query='+keyword,getMNLegBillsbyKeyword, time_hour_24, **params)
 	return sortBillsByDate(data,sort)
 
 def getBillsbyAuthor(author,session='session',sort=True): # bills search page
 	params={'author':author,
 			'session':session}
-	data=cacheDance('bills='+author+'_'+session,getMNLegBillsbyAuthor, **params)
+	data=cacheDance('bills='+author+'_'+session,getMNLegBillsbyAuthor, time_hour_24, **params)
 	return sortBillsByDate(data,sort)
 
 def getBillById(bill,session): # bills search page
 	params={'bill':bill,
 			'session':session}
-	data=cacheDance(session+bill,getMNLegBillInfobyId, **params)
+	data=cacheDance(session+bill,getMNLegBillInfobyId, time_hour_24, **params)
 	return data
 
 def getBillNames(session,sort=True): # bills by session
 	params={'session':session}
-	data=cacheDance(session,getMNLegBillsbySession, **params)
+	# if not current session leave in cache forever
+	data=cacheDance(session,getMNLegBillsbySession, time_hour_24, **params)
 	bills=[]
 	for d in data:
 		n=int(d['bill_id'][3:])
@@ -451,7 +466,7 @@ def getBillNames(session,sort=True): # bills by session
 	return b
 
 def getSessionNames(): # session names for bills search page
-	data=cacheDance("sessions",getMNLegMetaData)
+	data=cacheDance("sessions",getMNLegMetaData, None)
 	session_details=data["session_details"]
 	sessions=[]
 	for s in session_details:
@@ -546,44 +561,37 @@ def getAllEvents(which='all'): # events calendar page
 		house=getFromCache('house_committee_meetings')
 		senate=getFromCache('senate_committee_meetings')
 		other=getAllOtherEventsAsEvents()
-		events=senate+house+other
+		if house:
+			events+=house
+		if senate:
+			events+=senate
+		if other:
+			events+=other
 	return events
 
 def getEventById(event_id): # event page
 	params={'event_id':event_id}
-	data=cacheDance(event_id,getMNLegEventById, **params)
+	data=cacheDance(event_id,getMNLegEventById, time_hour_24, **params)
 	return data
 
 def getAllCommittees(): # committees front page
-	data=getFromCache('committees')
-	if not data:
-		house=getMNLegAllCommittees()
-		senate=getSenateCommittees()
-		if house and senate:
-			data=senate+house
-	 		putInCache('committees',data)
-		else:
-			return None
-	return data
+	# data=getFromCache('committees')
+	# if not data:
+		# house=getMNLegAllCommittees()
+		# senate=getSenateCommittees()
+		# if house and senate:
+		# 	data=senate+house
+	data=getMNLegAllCommittees()
+	return sorted(data)
 
 def getCommitteeById(com_id): # committee page
-	data=getFromCache(com_id)
-	if not data:
-		if com_id[:2]=='MN':
-			data=getHouseCommitteeByID(com_id)
-			# if data:
-			# 	putInCache(com_id,data)
-		else:
-			data=getSenateCommitteeByID(com_id)
-			#if data:
-				#putInCache(com_id,data)
+	data=getCommitteeByID(com_id)
 	return data
 
 def getCurrentLegislators(): # legislators page
-	data=cacheDance('legislators',getMNLegislatorByActive,)
+	data=cacheDance('legislators',getMNLegislatorByActive, None)
 	return data
 
 def getLegislatorByID(leg_id): # individual legislator page
-	params={'leg_id':leg_id}
-	data=cacheDance(leg_id,getMNLegislatorById, **params)
+	data=getMNLegislatorById(leg_id)
 	return data

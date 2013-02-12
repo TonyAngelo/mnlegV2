@@ -5,3 +5,6 @@ cron:
 - description: senate events
   url: /cron/events/senate
   schedule: every 3 hours
+- description: front page
+  url: /cron/front
+  schedule: every 15 minutes

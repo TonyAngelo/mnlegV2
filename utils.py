@@ -73,12 +73,12 @@ def merge_dict(d1, d2):
     merged.update(d2)
     return merged
 
-def cacheDance(key,function,**kw):
+def cacheDance(key,function,time,**kw):
     data=getFromCache(key)
     if not data:
         data = function(**kw)
         if data:
-            putInCache(key,data)
+            putInCache(key,data,time)
         else:
             return None
     return data
@@ -126,10 +126,8 @@ def get_coords(ip):
             return db.GeoPt(lat,lon)
 
 def substitute_char(s,char,sub):
-    if s:
-        result = re.sub(char,sub,s)
-        return result
-    return None
+    result = re.sub(char,sub,s)
+    return result
 
 def check_valid_entry(entry,check):
     result=""
