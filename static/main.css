@@ -32,6 +32,62 @@ body {
     padding: 0px 20px;
 }
 
+#member-breakdowns {
+    
+    width: 800px;
+    padding: 10px;
+}
+
+.senate-breakdown {
+    display: inline-block;
+    margin: 0px 20px 0px 0px;
+    width: 240px;
+    line-height:50%
+}
+
+.house-breakdown {
+    display: inline-block;
+    margin: 0px 0px 0px 0px;
+    width: 470px;
+    line-height:50%
+}
+
+#senate-central-hump {
+    display: inline-block;
+    top:5px;
+    right:50px;
+    height: 25px; /*Specify Height*/
+    width:  50px; /*Specify Width*/
+    border: 1px solid #000000;
+    background-color: #000000; 
+    border-top-right-radius:25px;
+    -webkit-border-top-right-radius:25px;
+    border-top-left-radius:25px;
+    -webkit-border-top-left-radius:25px;
+    margin: 0px;
+    padding: 0px;
+}
+
+.dfl-member {
+    display: inline-block;
+    height: 5px; /*Specify Height*/
+    width:  3px; /*Specify Width*/
+    border: 1px solid #0000FF; /*Add 1px solid border, use any color you want*/
+    background-color: #0000FF; /*Add a background color to the box*/
+    margin: 1px;
+    padding: 0px;
+}
+
+.gop-member {
+    display: inline-block;
+    height: 5px; /*Specify Height*/
+    width:  3px; /*Specify Width*/
+    border: 1px solid #FF0000; /*Add 1px solid border, use any color you want*/
+    background-color: #FF0000; /*Add a background color to the box*/
+    margin: 1px;
+    padding: 0px;
+}
+
 #front-house-daily {
     /*border: 1px solid black;*/
     width: 250px;
@@ -56,6 +112,17 @@ body {
     padding: 10px;
 }
 
+#front-bill-counts {
+    width: 140px;
+    display: inline-block;
+    vertical-align:top;
+    padding: 10px 5px 0px 5px;
+}
+
+#front-bill-counts a {
+    text-decoration: none;
+}
+
 .front-item-container{
     margin: 10px 0px 10px 0px;
 }
@@ -78,6 +145,33 @@ body {
 }
 
 .front-item-text {
+    display: inline-block;
+    width:  75%;
+    margin: 0px 0px 0px 5px;
+}
+
+.bill-summery-container{
+    margin: 10px 0px 10px 0px;
+}
+
+.bill-summery-box {
+    display: inline-block;
+    height: 35px; /*Specify Height*/
+    width:  50px; /*Specify Width*/
+    border: 1px solid #2E3041; /*Add 1px solid border, use any color you want*/
+    background-color: #2E3041; /*Add a background color to the box*/
+    text-align:center;
+    vertical-align:top;
+    padding: 0px 0px 0px 0px;
+}
+
+.bill-summery-box a {
+    color:#FFFFFF;
+    text-decoration: none;
+    vertical-align:middle;
+}
+
+.bill-summery-text {
     display: inline-block;
     width:  75%;
     margin: 0px 0px 0px 5px;

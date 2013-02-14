@@ -2,49 +2,24 @@
 
 {% block content %}
 <script type="text/javascript">
-	$(function() {
-	    $( "#bills-tabs" ).tabs();
-	});
+  $(function() {
+    $( ".chambers" ).button();
+  });
 </script>
 
 <div class='breadcrumb'><a href='/bills'>bills</a> > {{path}}</div>
 <br>
 <h2 style="display:inline">{{path}}</h2>
-
+<a class="chambers" href="/bills/{{path}}?q=senate">Senate</a>
+<a class="chambers" href="/bills/{{path}}?q=house">House</a>
 <div id='sort-methods'>
-	sort: <a href="/bills/{{path}}?s=asc">asc</a> | <a href="/bills/{{path}}?s=dec">dec</a>
+	sort: <a href="/bills/{{path}}?s=asc{% if chamber_name %}&q={{chamber}}{% endif %}">asc</a> | <a href="/bills/{{path}}?s=dec{% if chamber_name %}&q={{chamber}}{% endif %}">dec</a>
 </div>
 <br><br>
-<div id="bills-tabs">
-  <ul>
-    <li><a href="#bills-tabs-1">Senate</a></li>
-    <li><a href="#bills-tabs-2">House</a></li>
-  </ul>
-  <div id="bills-tabs-1">
-    <p>
-    <dl>
-		{% for b in bills %}
-			{% if b[0].bill_id[0]=='S' %}
-				<dt><a href="/bills/{{path}}/{{b[0].bill_id}}">{{b[0].bill_id}}</a></dt>
-				<dd>{{b[0].title}}</dd>
-			{% endif %}
-		{% endfor %}
-	</dl>
-	</p>
-
-  </div>
-  <div id="bills-tabs-2">
-    <p>
-    <dl>
-		{% for b in bills %}
-			{% if b[0].bill_id[0]=='H' %}
-				<dt><a href="/bills/{{path}}/{{b[0].bill_id}}">{{b[0].bill_id}}</a></dt>
-				<dd>{{b[0].title}}</dd>
-			{% endif %}
-		{% endfor %}
-	</dl>
-    </p>
-  </div>
-</div>
+{% for b in bills %}
+	{% if b[0].bill_id[0]==chamber_name[0] %}
+		<div class="bill-summery-container"><div class="bill-summery-box"><a href="/bills/{{path}}/{{b[0].bill_id}}">{{b[0].bill_id[:2]}}<br><span style="font-weight:bold;">{{b[0].bill_id[3:]}}</span></a></div><div class="bill-summery-text">{{b[0].title}}</div></div>
+	{% endif %}
+{% endfor %}
 
 {% endblock %}

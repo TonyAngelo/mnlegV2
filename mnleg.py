@@ -4,8 +4,9 @@ from bs4 import BeautifulSoup
 from utils import (get_contents_of_url,getFromCache,putInCache,cacheDance,substitute_char,
 					getDateString,convertSenComMeetDateStringtoDate,
 					convertDateToTimeStamp,convertDateStringtoDate,)
-from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
+from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,getHPVIbyDistrict,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
+from parse import Legislator,Committee,District,BillCounts
 
 time_hour_1=3600
 time_hour_3=3600
@@ -90,6 +91,7 @@ def getMNLegBillsbyQuery(query):
 	return sendGetRequest(url)
 
 def getMNLegBillsbyAuthor(author,session='session'):
+	#http://openstates.org/api/v1/bills/?sponsor_id=MNL000044&state=mn&search_window=session&apikey=4a26c19c3cae4f6c843c3e7816475fae
 	url=base_url+'bills/?state=mn&search_window='+session+'&sponsor_id='+author+'&'+apikey_url+API_KEY
 	return sendGetRequest(url)
 
@@ -128,12 +130,23 @@ def sendGetRequest(url):
 ##### misc helper functions #####                                                   #####
 #########################################################################################
 
+def getBillCountsByLegislator():
+	bill_counts=[]
+	data=cacheDance('legislators',getMNLegislatorByActive, None)
+	for d in data:
+		b=getMNLegBillsbyAuthor(d['leg_id'])
+		bill_counts.append((len(b),(d['last_name'],d['leg_id'])))
+	bills=sorted(bill_counts, key=lambda tup: tup[0],reverse=True)
+	return bills
+
 def sortBillsByDate(data,sort):
 	bills=[]
-	for d in data:
-		bills.append(d)
-	b=sorted(bills, key=lambda bills: bills['updated_at'] ,reverse=sort)
-	return b
+	if data:
+		for d in data:
+			bills.append(d)
+		b=sorted(bills, key=lambda bills: bills['updated_at'] ,reverse=sort)
+		return b
+	return bills
 
 def bill_text_remove_markup(text):
     text=substitute_char(text,var_re,'')
@@ -263,7 +276,7 @@ def getSenateCommitteeMembers(url):
                 results.append(m)
         return title, results, meetings
 
-def getCommitteeByID(com_id):
+def getCommitteeDictByID(com_id):
 	data=getMNLegCommitteeById(com_id)
 	if data['chamber']=='lower':
 		meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
@@ -464,6 +477,7 @@ def getBillNames(session,sort=True): # bills by session
 		bills.append((d,n))
 	b=sorted(bills, key=lambda tup: tup[1],reverse=sort)
 	return b
+	
 
 def getSessionNames(): # session names for bills search page
 	data=cacheDance("sessions",getMNLegMetaData, None)
@@ -486,36 +500,36 @@ def getAllDistricts(): # districts front
 	return data
 
 def getDistrictById(district_id): # individual district
-	data=getFromCache(district_id)
-	if not data:
-		data=getMNLegDistrictById(district_id)
-		if data: 
-			if 'shape' in data:
-				new_shape=[]
-				data['district_map']='True'
-		 		for p in data['shape'][0][0]:
-		 			new_shape.append([p[1],p[0]])
-		 		data['shape'][0][0]=new_shape
+	# data=getFromCache(district_id)
+	# if not data:
+	data=getMNLegDistrictById(district_id)
+	if data: 
+		if 'shape' in data:
+			new_shape=[]
+			data['district_map']='True'
+	 		for p in data['shape'][0][0]:
+	 			new_shape.append([p[1],p[0]])
+	 		data['shape'][0][0]=new_shape
 
-	 		legislator=getLegislatorByDistrict(data['name'])
-	 		if legislator!=None:
-		 		data['legislator']=legislator
+ 		legislator=getLegislatorByDistrict(data['name'])
+ 		if legislator!=None:
+	 		data['legislator']=legislator
 
-		 	demo=fetchDistrictDemoData(data['boundary_id'])
-		 	if demo!=None:
-		 		data['district_demo']=demo
+	 	demo=fetchDistrictDemoData(data['boundary_id'])
+	 	if demo!=None:
+	 		data['district_demo']=demo
 
-		 	election=get2012ElectionResultsbyDistrict(data['name'],data['chamber'])
-		 	if election!=None:
-		 		data['leg_results']=election
+	 	election=get2012ElectionResultsbyDistrict(data['name'],data['chamber'])
+	 	if election!=None:
+	 		data['leg_results']=election
 
-		 	hpvi=getHPVIbyChamber(data['chamber'])
-		 	if hpvi!=None:
-		 		data['hpvi']=hpvi
+	 	hpvi=getHPVIbyChamber(data['chamber'])
+	 	if hpvi!=None:
+	 		data['hpvi']=hpvi
 
-	 		putInCache(district_id,data)
-		else:
-			return None
+ 		#putInCache(district_id,data)
+	# else:
+	# 	return None
 	return data
 
 def getAllDistrictsByID(chamber): # for full senate/house map pages
@@ -585,7 +599,7 @@ def getAllCommittees(): # committees front page
 	return sorted(data)
 
 def getCommitteeById(com_id): # committee page
-	data=getCommitteeByID(com_id)
+	data=getCommitteeDictByID(com_id)
 	return data
 
 def getCurrentLegislators(): # legislators page
@@ -595,3 +609,102 @@ def getCurrentLegislators(): # legislators page
 def getLegislatorByID(leg_id): # individual legislator page
 	data=getMNLegislatorById(leg_id)
 	return data
+
+def getBillCounts():
+	counts=BillCounts.Query.all()
+	for c in counts:
+		return c.counts
+
+def addBillCountsToParse():
+	counts=BillCounts.Query.all()
+	if counts.count()>0:
+		for c in counts:
+			c.counts=getBillCountsByLegislator()
+			c.save()
+			break
+	else:
+		c=BillCounts(counts=getBillCountsByLegislator())
+		c.save()
+
+def addLegislatorToParse(leg_id):
+	leg=Legislator.get_by_id(leg_id)
+	if leg.count()==0:
+		data=getMNLegislatorById(leg_id)
+		if data:
+			first,last=data.get('first_name'),data.get('last_name')
+			name=first+' '+last
+			params={'name': name,
+					'full_name': data.get('full_name'),
+	    			'chamber': data.get('chamber'),
+	    			'party': data.get('party'),
+	    			'district': data.get('district'),
+	    			'office_phone': data.get('office_phone'),
+	    			'leg_id': data.get('leg_id'),
+	    			'votesmart_id': data.get('votesmart_id'),
+	    			'leg_url': data.get('+leg_url'),
+	    			'active': data.get('active'),
+	    			'transparencydata_id': data.get('transparencydata_id'),
+	    			'photo_url': data.get('photo_url'),
+	    			'roles': data.get('roles'),
+	    			'old_roles': data.get('old_roles'),
+	    			'offices': data.get('offices'),
+	    			}
+	    	leg=Legislator(**params)
+	    	leg.save()
+
+def addLegislatorsToParseCommittee(com_id):
+	com=Committee.get_by_id(com_id)
+	if com.count()==1:
+		for c in com:
+			members=[]
+			for m in c.members:
+				leg=Legislator.get_by_id(m.get('leg_id'))
+				members.append(leg)
+			c.members=members
+			c.save()
+
+def addLegislatorToParseDistrict(dist_id):
+	#leg=Legislator.get_by_district(dist_id)
+	pass
+
+def addCommitteeToParse(com_id):
+	com=Committee.get_by_id(com_id)
+	if com.count()==0:
+		data=getMNLegCommitteeById(com_id)
+		if data:
+			# members=[]
+			# for m in data.get('members')
+			params={'name': data.get('committee'),
+					'chamber': data.get('chamber'),
+					'subcommittee': data.get('subcommittee'),
+					'parent_id': data.get('parent_id'),
+					'com_id': data.get('id'),
+					'com_url': data.get('sources'),
+	    			'members': data.get('members'), # add members as parse leg objects
+	    			}
+	    	com=Committee(**params)
+	    	com.save()
+
+def addDistrictToParse(dist_id,hpvi):
+	dist=District.get_by_id(dist_id)
+	if dist.count()==0:
+		data=getDistrictById(dist_id)
+		if data:
+			params={'name': data.get('name'),
+	    			'chamber': data.get('chamber'),
+	    			'lon_delta': data['region']['lon_delta'],
+	    			'center_lon': data['region']['center_lon'],
+	    			'lat_delta': data['region']['lat_delta'],
+	    			'center_lat': data['region']['center_lat'],
+	    			'alt_id': data.get('id'),
+	    			'dist_id': data.get('boundary_id'),
+	    			'bbox': data.get('bbox'),
+	    			'shape': data.get('shape'), # add members as parse leg objects
+	    			'legislator': data.get('legislator'),
+	    			'demographics': data.get('district_demo'),
+	    			'leg_elec_results': data.get('leg_results'),
+	    			'hpvi': hpvi,
+					}
+	    	dist=District(**params)
+	    	dist.save()
+

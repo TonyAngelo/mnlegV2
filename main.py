@@ -27,7 +27,8 @@ from mnleg import (getSessionNames,getBillNames,getBillById,getBillText,
                     getAllCommittees,getCommitteeById,
                     getAllEvents,getEventById,getCurrentBills,
                     getAllDistricts,getDistrictById,cronEvents,
-                    getBillsbyAuthor,getBillsbyKeyword,)
+                    getBillsbyAuthor,getBillsbyKeyword,getBillCounts,
+                    addLegislatorToParse,addCommitteeToParse,addDistrictToParse,addBillCountsToParse,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 from feeds import getMNHouseSessionDaily,getTownhallFeed
@@ -51,6 +52,7 @@ all_committees_page="mnleg-current-committees.html"
 committee_page="mnleg-committee.html"
 all_events_page="mnleg-events-page-calender-gcal.html"
 event_page="mnleg-event.html"
+parse_legislators_page="parse-leg.html"
 legislator_info_page="mnleg-legislator-info.html"
 districts_page="mnleg-districts-page.html"
 all_districts_page="mnleg-districts-gmap-page.html"
@@ -156,6 +158,14 @@ class MainHandler(GenericHandler):
         params=self.check_login("/")
         params['house_daily_items']=getFromCache('Session Daily')
         params['current_bills']=getFromCache('Current Bills')
+        params['dfl_senators']=39
+        params['gop_senators']=28
+        params['dfl_reps']=73
+        params['gop_reps']=61
+        bill_counts=getBillCounts()
+        params['top']=bill_counts[:5]
+        params['bottom']=bill_counts[-5:]
+        params['average']=bill_counts[98:103]
         #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
         #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
         self.render(main_page, **params)
@@ -220,6 +230,11 @@ class BillsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
+            params['chamber']='senate'
+            params['chamber_name']="Senate"
+            if self.request.get("q")=="house":
+                params['chamber']='house'
+                params['chamber_name']='House'
             sort=self.request.get('s')
             d=getSortValue(sort)
             params['bills']=getBillNames(path,d)
@@ -233,6 +248,55 @@ class BillInfoHandler(GenericHandler):
         else:
             updateBillInfoPageParams(params,bill,session)
             self.render(bill_info_page, **params)
+
+class ParseMainHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('/')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            addBillCountsToParse()
+
+class ParseLegislatorHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('legislators')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            legs=getCurrentLegislators()
+            for l in legs:
+                addLegislatorToParse(l['leg_id'])
+
+class ParseAddLegislator(GenericHandler):
+    def get(self,leg_id):
+        addLegislatorToParse(leg_id)
+        self.redirect('/parse/legislators')
+
+class ParseCommitteesHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('committees')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            coms=getAllCommittees()
+            for c in coms:
+                addCommitteeToParse(c['id'])
+
+class ParseDistrictsHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('districts')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            dists=getAllDistricts()
+            house_hpvi=getHPVIbyChamber('lower')
+            senate_hpvi=getHPVIbyChamber('upper')
+            for d in dists:
+                if d['chamber']=='upper':
+                    hpvi=senate_hpvi.get(d['name'])
+                elif d['chamber']=='lower':
+                    hpvi=house_hpvi.get(d['name'])
+                addDistrictToParse(d['boundary_id'],hpvi)
 
 class LegislatureHandler(GenericHandler):
     def get(self):
@@ -466,6 +530,11 @@ app = webapp2.WSGIApplication([
     ('/bills/?', SessionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
+    ('/parse/front/?', ParseMainHandler),
+    # ('/parse/legislators/?', ParseLegislatorHandler),
+    # ('/parse/committees/?', ParseCommitteesHandler),
+    # ('/parse/districts/?', ParseDistrictsHandler),
+    # ('/parse/legislators/(MNL[0-9]+)/?', ParseAddLegislator),
     ('/legislators/?', LegislatureHandler),
     ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),

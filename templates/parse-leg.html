@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<table><tr><td width="200px" valign="top">
+  <h3>Senate Democrats</h3>
+    {% for l in legislators %}{% if l.chamber=='upper' and l.party[0]=='D' %}<a href='/parse/legislators/{{l.leg_id}}'>{{l.first_name}} {{l.last_name}}</a><br>{% endif %}{% endfor %}
+</td><td width="200px" valign="top">
+	<h3>Senate Republicans</h3>
+    {% for l in legislators %}{% if l.chamber=='upper' and l.party[0]=='R' %}<a href='/parse/legislators/{{l.leg_id}}'>{{l.first_name}} {{l.last_name}}</a><br>{% endif %}{% endfor %}
+</td><td width="200px" valign="top">
+  <h3>House Democrats</h3>
+    {% for l in legislators %}{% if l.chamber=='lower' and l.party[0]=='D' %}<a href='/parse/legislators/{{l.leg_id}}'>{{l.first_name}} {{l.last_name}}</a><br>{% endif %}{% endfor %}
+</td><td width="200px" valign="top">
+  <h3>House Republicans</h3>
+    {% for l in legislators %}{% if l.chamber=='lower' and l.party[0]=='R' %}<a href='/parse/legislators/{{l.leg_id}}'>{{l.first_name}} {{l.last_name}}</a><br>{% endif %}{% endfor %}
+</td></tr></table>
+
+{% endblock %}

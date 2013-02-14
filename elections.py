@@ -53,6 +53,13 @@ def getHPVIbyChamber(chamber):
 		hpvi=fetchHousehPVIfeed()
 	return hpvi
 
+def getHPVIbyDistrict(district):
+	if district.isdigit(): #senate
+		data=getHPVIbyChamber('upper')
+	else:
+		data=getHPVIbyChamber('lower')
+	return data[district]
+
 def parseCSVfromURL(page,delimiter):
 	csvio = cStringIO.StringIO(page)
 	data = csv.reader(csvio, delimiter=delimiter)

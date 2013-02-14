@@ -8,3 +8,6 @@ cron:
 - description: front page
   url: /cron/front
   schedule: every 15 minutes
+- description: parse front
+  url: /parse/front
+  schedule: every day 03:00
