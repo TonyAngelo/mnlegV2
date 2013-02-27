@@ -1,20 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<div class='breadcrumb'><a href='/committees'>committees</a> > {{committee.committee}}</div>
-<h2>{{committee.committee}}</h2>
-<table>
-	<tr><td valign="top" width="400px">
-	<h3>Members</h3>
-	{% for m in committee.members %}
-		<a href="/legislators/{{m.leg_id}}">{{m.name}}</a>
-		{% if m.role!='member' %}
-			- <em>{{m.role}}</em>
-		{% endif %}
-		<br>
-	{% endfor %}
-	</td><td valign="top" width="400px">
-	{% if committee.meetings %}{% autoescape false %}
-	{{committee.meetings}}{% endautoescape %}{% endif %}
-	</td></tr>
+<ul id="breadcrumbs-one">
+    <li><a href="/committees?q={% if committee.chamber=='upper' %}senate{% else %}house{% endif %}">committees</a></li>
+    <li><a href="" class="current">{{chamber}} {{committee.committee}}</a></li>
+</ul>
+<h2>Members</h2>
+<table><tr><td valign="top" width="200px"><h3>Democrats</h3>
+	<table>{% for m in committee.members %}{% if m.party[0]=='D' %}<tr><td><a href="/legislators/{{m.leg_id}}"><img width="30px" title="{{m.first_name}} {{m.last_name}}" alt="{{m.first_name}} {{m.last_name}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{m.leg_id}}.jpg"></a></td><td>{{m.first_name}} {{m.last_name}}{% if m.role!='member' %}<br><em>{{m.role}}</em>{% endif %}</td></tr>{% endif %}{% endfor %}</table></td><td valign="top" width="200px"><h3>Republicans</h3>
+	<table>{% for m in committee.members %}{% if m.party[0]=='R' %}<tr><td><a href="/legislators/{{m.leg_id}}"><img width="30px" title="{{m.first_name}} {{m.last_name}}" alt="{{m.first_name}} {{m.last_name}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{m.leg_id}}.jpg"></a></td><td>{{m.first_name}} {{m.last_name}}{% if m.role!='member' %}<br><em>{{m.role}}</em>{% endif %}</td></tr>{% endif %}{% endfor %}</table></td>
+	<td valign="top" width="400px">{% if committee.meetings %}{% autoescape false %}{{committee.meetings}}{% endautoescape %}{% endif %}</td></tr>
 </table>
 {% endblock %}

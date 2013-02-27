@@ -24,10 +24,10 @@ from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_ht
 from mnleg import (getSessionNames,getBillNames,getBillById,getBillText,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
-                    getAllCommittees,getCommitteeById,
+                    getAllCommittees,getCommitteeById,getCommitteesByChamber,
                     getAllEvents,getEventById,getCurrentBills,
                     getAllDistricts,getDistrictById,cronEvents,
-                    getBillsbyAuthor,getBillsbyKeyword,getBillCounts,
+                    getBillsbyAuthor,getBillsbyKeyword,getBillCounts,addEventsToParse,
                     addLegislatorToParse,addCommitteeToParse,addDistrictToParse,addBillCountsToParse,)
 from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
@@ -109,6 +109,11 @@ class GenericHandler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
+    def cache_render(self,key,template, **kw):
+        page=self.render_str(template, **kw)
+        putInCache(key,page)
+        self.write(page)
+
     def districts_render(self, chamber, **kw):
         page=self.render_str(all_districts_page, **kw)
         # if chamber=='house':
@@ -141,42 +146,54 @@ class GenericHandler(webapp2.RequestHandler):
 
     def check_login(self,path):
     	params=dict(path=path)
-    	if self.user:
-    		params['loggedin_user']=self.user.name
-        else:
-            params['loggedin_user']="Guest"
+    	# if self.user:
+    	# 	params['loggedin_user']=self.user.name
+     #    else:
+        params['loggedin_user']="Guest"
     	return params
 
-    def initialize(self,*a,**kw):
-        webapp2.RequestHandler.initialize(self,*a,**kw)
-        uid=self.read_secure_cookie('user_id')
-        self.user = uid and User.by_id(int(uid))
+    # def initialize(self,*a,**kw):
+    #     webapp2.RequestHandler.initialize(self,*a,**kw)
+    #     uid=self.read_secure_cookie('user_id')
+    #     self.user = uid and User.by_id(int(uid))
 
 # page handlers
 class MainHandler(GenericHandler):
     def get(self):
         params=self.check_login("/")
-        params['house_daily_items']=getFromCache('Session Daily')
-        params['current_bills']=getFromCache('Current Bills')
+        page=getFromCache('front_page')
+        if not page:
+            params['house_daily_items']=getMNHouseSessionDaily(5)
+            params['current_bills']=getCurrentBills(5)
+            params['dfl_senators']=39
+            params['gop_senators']=28
+            params['dfl_reps']=73
+            params['gop_reps']=61
+            bill_counts=getBillCounts()
+            params['top']=bill_counts[:10]
+            #params['bottom']=bill_counts[-10:]
+            # params['average']=bill_counts[98:103]
+            #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
+            #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
+            self.cache_render('front_page',main_page, **params)
+        else:
+            self.write(page)
+
+class CronMainHandler(GenericHandler):
+    def get(self):
+        params['house_daily_items']=getMNHouseSessionDaily(5)
+        params['current_bills']=getCurrentBills(5)
         params['dfl_senators']=39
         params['gop_senators']=28
         params['dfl_reps']=73
         params['gop_reps']=61
         bill_counts=getBillCounts()
-        params['top']=bill_counts[:5]
-        params['bottom']=bill_counts[-5:]
-        params['average']=bill_counts[98:103]
+        params['top']=bill_counts[:10]
+        #params['bottom']=bill_counts[-10:]
+        # params['average']=bill_counts[98:103]
         #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
         #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
-        self.render(main_page, **params)
-
-class CronMainHandler(GenericHandler):
-    def get(self):
-        getMNHouseSessionDaily()
-        getCurrentBills()
-        #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
-        #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
-        self.write('Main page cron event fired')
+        self.cache_render('front_page',main_page, **params)
 
 class SessionsHandler(GenericHandler):
     def get(self):
@@ -198,6 +215,7 @@ class SessionsHandler(GenericHandler):
                 params['keyword']=keyword
                 params['author']=leg
                 params['bills']=getBillsbyAuthor(params['author'],sort=s)
+                params['author_data']=getLegislatorByID(leg)
                 self.render(bills_search_results_page, **params)
             else:
                 params["sessions"],params["details"]=getSessionNames()
@@ -211,18 +229,15 @@ class SessionsHandler(GenericHandler):
         if submit=='Search by Bill':
             bill=self.request.get("bill")
             session=self.request.get("session")
-            updateBillInfoPageParams(params,bill,session)
-            self.render(bill_info_page, **params)
+            # session=self.request.get("session")
+            # updateBillInfoPageParams(params,bill,session)
+            self.redirect('/bills/'+session+'/'+bill)
         elif submit=='Search by Keyword':
-            params['keyword']=self.request.get("keyword")
-            # params['bills']=getBillsbyKeyword(params['keyword'])
-            # self.render(bills_search_results_page, **params)
-            self.redirect('/bills?k='+params['keyword'])
+            keyword=self.request.get("keyword")
+            self.redirect('/bills?k='+keyword)
         else:
-            params['author']=self.request.get("leg")
-            # params['bills']=getBillsbyAuthor(params['author'])
-            # self.render(bills_search_results_page, **params)
-            self.redirect('/bills?l='+params['author'])
+            author=self.request.get("leg")
+            self.redirect('/bills?l='+author)
         
 class BillsHandler(GenericHandler):
     def get(self,path):
@@ -282,6 +297,14 @@ class ParseCommitteesHandler(GenericHandler):
             for c in coms:
                 addCommitteeToParse(c['id'])
 
+class ParseCommitteeHandler(GenericHandler):
+    def get(self,com_id):
+        params=self.check_login('committees')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            addCommitteeToParse(com_id)
+
 class ParseDistrictsHandler(GenericHandler):
     def get(self):
         params=self.check_login('districts')
@@ -297,6 +320,14 @@ class ParseDistrictsHandler(GenericHandler):
                 elif d['chamber']=='lower':
                     hpvi=house_hpvi.get(d['name'])
                 addDistrictToParse(d['boundary_id'],hpvi)
+
+class ParseEventsHandler(GenericHandler):
+    def get(self,chamber):
+        params=self.check_login('events')
+        if 'loggedin_user' not in params:
+            self.redirect('/signup')
+        else:
+            addEventsToParse(chamber)
 
 class LegislatureHandler(GenericHandler):
     def get(self):
@@ -347,7 +378,10 @@ class AllCommitteesHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['committees']=getAllCommittees()
+            params['chamber']='upper'
+            if self.request.get("q")=="house":
+                params['chamber']='lower'
+            params['committees']=getCommitteesByChamber(params['chamber'])
             self.render(all_committees_page, **params)
 
 class CommitteeHandler(GenericHandler):
@@ -357,6 +391,10 @@ class CommitteeHandler(GenericHandler):
             self.redirect('/signup')
         else:
             params['committee']=getCommitteeById(com_id)
+            if params['committee']['chamber']=='upper':
+                params['chamber']='Senate'
+            else:
+                params['chamber']='House'
             self.render(committee_page, **params)
 
 class AllEventsHandler(GenericHandler):
@@ -365,8 +403,12 @@ class AllEventsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['events']=getAllEvents()
-            self.render(all_events_page, **params)
+            page=getFromCache('events_page')
+            if not page:
+                params['events']=getAllEvents()
+                self.cache_render('events_page',all_events_page, **params)
+            else:
+                self.write(page)
 
 class EventsHandler(GenericHandler):
     def get(self,events):
@@ -383,16 +425,8 @@ class EventsHandler(GenericHandler):
 
 class CronEventsHandler(GenericHandler):
     def get(self,events):
-        params=self.check_login('events')
-        if 'loggedin_user' not in params:
-            self.redirect('/signup')
-        else:
-            if events in event_types:
-                e=cronEvents(events)
-                self.write(events+' retrived: ')
-                self.write(e)
-            else:
-                self.redirect("/")
+        params['events']=getAllEvents()
+        self.cache_render('events_page',all_events_page, **params)
 
 class EventHandler(GenericHandler):
     def get(self,event_id):
@@ -410,7 +444,12 @@ class AllDistrictsHandler(GenericHandler):
             self.redirect('/signup')
         else:
             params['districts']=getAllDistricts()
+            # sen_hpvi=getHPVIbyChamber('upper')
+            # house_hpvi=getHPVIbyChamber('lower')
+            # # params['sen_hpvi']=
+            # # params['house_hpvi']=
             self.render(districts_page, **params)
+            #self.write(sen_hpvi)
 
     def post(self):
         district_id=self.request.get("districts")
@@ -527,20 +566,22 @@ class ClearCachePage(GenericHandler):
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/cron/front/?', CronMainHandler),
+    ('/cron/events/?', CronEventsHandler),
     ('/bills/?', SessionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
     ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
     ('/parse/front/?', ParseMainHandler),
-    # ('/parse/legislators/?', ParseLegislatorHandler),
-    # ('/parse/committees/?', ParseCommitteesHandler),
-    # ('/parse/districts/?', ParseDistrictsHandler),
-    # ('/parse/legislators/(MNL[0-9]+)/?', ParseAddLegislator),
+    ('/parse/legislators/?', ParseLegislatorHandler),
+    ('/parse/committees/?', ParseCommitteesHandler),
+    ('/parse/committees/(MNC[0-9]+|[0-9]+)/?', ParseCommitteeHandler),
+    ('/parse/districts/?', ParseDistrictsHandler),
+    ('/parse/events/(house|senate)/?', ParseEventsHandler),
+    ('/parse/legislators/(MNL[0-9]+)/?', ParseAddLegislator),
     ('/legislators/?', LegislatureHandler),
     ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
     ('/committees/(MNC[0-9]+|[0-9]+)/?', CommitteeHandler),
     ('/events/?', AllEventsHandler),
-    ('/cron/events/([a-z]*)/?', CronEventsHandler),
     ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?', AllDistrictsHandler),
     ('/districts/(house|senate)/?', ChamberDistrictsHandler),

@@ -9,7 +9,11 @@
       });
     });
 </script>
-<div class='breadcrumb'><a href='/bills'>bills</a> > <a href="/bills/{{bill_info.session}}">{{bill_info.session}}</a> > {{bill_info.bill_id}}</div>
+<ul id="breadcrumbs-one">
+    <li><a href="/bills">bills</a></li>
+    <li><a href="/bills/{{bill_info.session}}">{{bill_info.session}}</a></li>
+    <li><a href="" class="current">{{bill_info.bill_id}}</a></li>
+</ul>
 
 <h2>{{bill_info.bill_id}} - {{bill_info.title}}</h2>
 <br>

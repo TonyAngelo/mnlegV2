@@ -2,29 +2,37 @@
 
 {% block content %}
 <script type="text/javascript">
-	$(function() {
-	    $( "#committee-tabs" ).tabs();
-	});
+  $(function() {
+    $( ".chambers" ).button();
+  });
+  $(function() {
+      $( ".accordion" ).accordion({
+        heightStyle: "content",
+        collapsible: true,
+        active: false,
+      });
+      $( ".sub-accordion" ).accordion({
+        heightStyle: "content",
+        collapsible: true,
+        active: false,
+      });
+   });
 </script>
-<h2>Minnesota Legislative Committees</h2>
-<div id="committee-tabs"><ul>
-	<li><a href="#committee-tabs-1">Senate</a></li>
-    <li><a href="#committee-tabs-2">House</a></li></ul>
-<div id="committee-tabs-1">
-    <p>{% if committees %}{% for c in committees %}
-			{% if c.chamber=='upper' %}{% if c.subcommittee %}<span style="margin-left:25px;">{% else %}<span>{% endif %}
-				<a href='/committees/{{c.id}}'>{{c.committee}}{% if c.subcommittee %} - {{c.subcommittee}}{% endif %}</a></span><br>
-			{% endif %}
-		{% endfor %}{% endif %}
-	</p>
-</div>
-<div id="committee-tabs-2">
-    <p>{% if committees %}{% for c in committees %}
-			{% if c.chamber=='lower' %}
-				<a href='/committees/{{c.id}}'>{{c.committee}}</a><br>
-			{% endif %}	
-		{% endfor %}{% endif %}
-    </p>
-</div>
-</div>
+<ul id="breadcrumbs-one">
+    <li><a href="" class="current">Minnesota Legislative Committees</a></li>
+</ul>
+<br>
+<a class="chambers" href="/committees?q=senate">Senate</a>
+<a class="chambers" href="/committees?q=house">House</a>
+<br><br>
+
+{% if committees %}<div class="accordion">{% for c in committees %}
+	{% if c.chamber==chamber %}{% if c.subcommittee %}{% else %}<h3>{{c.name}}{% if c.subcommittee %} - {{c.subcommittee}}{% endif %}</h3>
+	<div><a href='/committees/{{c.com_id}}'>Go to Page</a><br><br>
+	<table><tr>{% for m in c.members %}{% if m.role!='member' %}<td><a href="/legislators/{{m.leg_id}}"><img width="30px" title="{{m.first_name}} {{m.last_name}}" alt="{{m.first_name}} {{m.last_name}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{m.leg_id}}.jpg"></a></td><td>{{m.first_name}} {{m.last_name}}<br><em>{{m.role}}</em></td>{% endif %}{% endfor %}</tr></table>
+	<div class="sub-accordion">{% for s in committees %}{% if s.name==c.name and s.subcommittee %}<h3>{{s.subcommittee}}</h3><div><a href='/committees/{{s.com_id}}'>Go to Page</a><br><br>
+	<table><tr>{% for m in s.members %}{% if m.role!='member' %}<td><a href="/legislators/{{m.leg_id}}"><img width="30px" title="{{m.first_name}} {{m.last_name}}" alt="{{m.first_name}} {{m.last_name}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{m.leg_id}}.jpg"></a></td><td>{{m.first_name}} {{m.last_name}}<br><em>{{m.role}}</em></td>{% endif %}{% endfor %}</tr></table></div>{% endif %}{% endfor %}</div>
+	</div>{% endif %}{% endif %}
+{% endfor %}</div>{% endif %}
+
 {% endblock %}

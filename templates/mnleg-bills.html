@@ -7,9 +7,11 @@
   });
 </script>
 
-<div class='breadcrumb'><a href='/bills'>bills</a> > {{path}}</div>
+<ul id="breadcrumbs-one">
+    <li><a href='/bills'>bills</a></li>
+    <li><a href="" class="current">{{path}}</a></li>
+</ul>
 <br>
-<h2 style="display:inline">{{path}}</h2>
 <a class="chambers" href="/bills/{{path}}?q=senate">Senate</a>
 <a class="chambers" href="/bills/{{path}}?q=house">House</a>
 <div id='sort-methods'>

@@ -17,7 +17,8 @@ def getMNHouseSessionDaily(n=10):
 	for i in range(n):
 		if f['entries']:
 			results.append(f['entries'].pop(0))
-	putInCache('Session Daily',results)
+	#putInCache('Session Daily',results)
+	return results
 
 def getTownhallFeed(party,n=5):
 	global mn_townhalls

@@ -24,7 +24,9 @@
 	};
 	//--> 
 </script> 
-
+<ul id="breadcrumbs-one">
+    <li><a href="" class="current">Minnesota Legislature Bills</a></li>
+</ul>
 <table><tr><td width="400" valign="top">
 <h2>Bill Search</h2>
 <br>
@@ -56,13 +58,12 @@ or search by legislator<br><br>
 <br>
 </td><td width="400" valign="top">
 <h2>Bulk Session Search</h2>
-<br>Search all bill for a session
-
+<br>search all bills for a session
+<br><br>
 <ul id="sessions-list">
 	{% for s in sessions %}
 	    <li><a href="/bills/{{s}}">{{details[s]['display_name']}}</a></li>
 	{% endfor %}
-
 </ul>
 </td></tr></table>
 

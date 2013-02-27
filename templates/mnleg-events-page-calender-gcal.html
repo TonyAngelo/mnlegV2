@@ -30,7 +30,10 @@
 					start: '{{e.start}}',
 					url: '{{e.url}}',
 					allDay: false,
-					{% if e.type!='committee meeting' %}
+					{% if e.type=='senate meeting' %}
+						backgroundColor:'#FF6A00',
+						borderColor:'#FF6A00',
+					{% elif e.type!='house meeting' %}
 						backgroundColor:'#036C03',
 						borderColor:'#036C03',
 					{% endif %}
@@ -48,16 +51,14 @@
 
 </script>
 <style type='text/css'>
-
-	
-
 	#calendar {
 		width: 800px;
 		margin: 0 auto;
 		}
-
 </style>
-
+<ul id="breadcrumbs-one">
+    <li><a href="" class="current">Minnesota Legislative Events Calendar</a></li>
+</ul>
+<br>
 <div id='calendar'></div>
-
 {% endblock %}

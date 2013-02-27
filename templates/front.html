@@ -4,16 +4,16 @@
 <script type='text/javascript' src="/js/google-charts.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 <script type="text/javascript" src="/js/jquery.sparkline.min.js"></script>
-
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 <div id='front-dashboard-container'>
 
 	<div id='member-breakdowns'>
 		<div class='senate-breakdown'>
-			<h3>Senate</h3>
+			<a href='/legislators?q=senate'><h3>Senate</h3></a>
 			{% for n in range(dfl_senators) %}<div class='dfl-member'></div>{% endfor %}{% for n in range(gop_senators) %}<div class='gop-member'></div>{% endfor %}
 		</div>
 		<div class='house-breakdown'>
-			<h3>House</h3>
+			<a href='/legislators?q=house'><h3>House</h3></a>
 			{% for n in range(dfl_reps) %}<div class='dfl-member'></div>{% endfor %}{% for n in range(gop_reps) %}<div class='gop-member'></div>{% endfor %}
 		</div>
 	</div>
@@ -25,9 +25,9 @@
 			<a href="/bills/{{b.session}}/{{b.bill_id}}">{{b.bill_id[:2]}}<br><span style="font-weight:bold;">{{b.bill_id[3:]}}</span></a></div>
 			<div class="front-item-text">{{b.title}}</div></div>
 		{% endfor %}{% endif %}
-	</div>
-
-	<div id='front-house-daily'>
+	<!-- </div>
+	<div id='front-house-daily'> -->
+		<br>
 		<h3>Session Daily</h3>
 		{% if house_daily_items %}{% for i in house_daily_items %}
 			<div class="front-item-container"><div class="front-item-box">
@@ -35,17 +35,14 @@
 			<div class="front-item-text">{{i.title}}</div></div>
 		{% endfor %}{% endif %}
 	</div>
+	<div id="twitter-feeds">
+		<a class="twitter-timeline" href="https://twitter.com/TonyAngelo/mn-legislators" data-widget-id="302987927410053120">Tweets from @TonyAngelo/mn-legislators</a>
+	</div>
 	<!-- <span id='sen_pie'></span>
 	<span id='house_pie'></span> -->
 	<div id='front-bill-counts'>
-		<h3>Most Bills authored</h3>
-		{% if top %}{% for l in top %}<a href="/legislators/{{l[1][1]}}">{{l[1][0]}}</a> - {{l[0]}}<br>{% endfor %}{% endif %}
-		<br><br>
-		<h3>Average Bills authored</h3>
-		{% if average %}{% for l in average %}<a href="/legislators/{{l[1][1]}}">{{l[1][0]}}</a> - {{l[0]}}<br>{% endfor %}{% endif %}
-		<br><br>
-		<h3>Least Bills authored</h3>
-		{% if bottom %}{% for l in bottom %}<a href="/legislators/{{l[1][1]}}">{{l[1][0]}}</a> - {{l[0]}}<br>{% endfor %}{% endif %}
+		<h3>Most Bills Authored/Sponsored</h3><table>
+		{% if top %}{% for l in top %}<tr><td><a href="/legislators/{{l[1][0]}}"><img width="30px" title="{{l[1][1]}} {{l[1][2]}}" alt="{{l[1][1]}} {{l[1][2]}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{l[1][0]}}.jpg"></a></td><td><a href="/legislators/{{l[1][0]}}">{% if l[1][3][0]=='D' %}<span style="color:#0000FF">{% else %}<span style="color:#FF0000">{% endif %}{{l[1][1][0]}}. {{l[1][2]}}</span><br>{{l[0]}}</a></td></tr>{% endfor %}{% endif %}</table>
 	</div>
 </div>
 

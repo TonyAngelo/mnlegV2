@@ -2,11 +2,15 @@ body {
     position: relative;
     font-family: Helvetica, Arial, sans-serif;
     font-size: 14px;
-
     width: 800px;
     margin: 0 auto;
-    /*padding: 10px;*/
     color: #333;
+}
+
+ul{
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 #sort-methods {
@@ -15,8 +19,7 @@ body {
 }
 
 #front-dashboard-container {
-    /*border: 1px solid black;*/
-    /*height:auto;*/
+    
 }
 
 #front-dashboard-container h3 {
@@ -33,9 +36,12 @@ body {
 }
 
 #member-breakdowns {
-    
     width: 800px;
     padding: 10px;
+}
+
+#member-breakdowns a {
+    
 }
 
 .senate-breakdown {
@@ -52,44 +58,34 @@ body {
     line-height:50%
 }
 
-#senate-central-hump {
-    display: inline-block;
-    top:5px;
-    right:50px;
-    height: 25px; /*Specify Height*/
-    width:  50px; /*Specify Width*/
-    border: 1px solid #000000;
-    background-color: #000000; 
-    border-top-right-radius:25px;
-    -webkit-border-top-right-radius:25px;
-    border-top-left-radius:25px;
-    -webkit-border-top-left-radius:25px;
-    margin: 0px;
-    padding: 0px;
-}
-
 .dfl-member {
     display: inline-block;
-    height: 5px; /*Specify Height*/
-    width:  3px; /*Specify Width*/
-    border: 1px solid #0000FF; /*Add 1px solid border, use any color you want*/
-    background-color: #0000FF; /*Add a background color to the box*/
+    height: 5px; 
+    width:  3px;
+    border: 1px solid #0000FF; 
+    background-color: #0000FF; 
     margin: 1px;
     padding: 0px;
 }
 
 .gop-member {
     display: inline-block;
-    height: 5px; /*Specify Height*/
-    width:  3px; /*Specify Width*/
-    border: 1px solid #FF0000; /*Add 1px solid border, use any color you want*/
-    background-color: #FF0000; /*Add a background color to the box*/
+    height: 5px;
+    width:  3px; 
+    border: 1px solid #FF0000;
+    background-color: #FF0000;
     margin: 1px;
     padding: 0px;
 }
 
 #front-house-daily {
-    /*border: 1px solid black;*/
+    width: 250px;
+    display: block;
+    vertical-align:top;
+    padding: 10px;
+}
+
+#twitter-feeds {
     width: 250px;
     display: inline-block;
     vertical-align:top;
@@ -97,7 +93,6 @@ body {
 }
 
 #front-townhalls {
-    /*border: 1px solid black;*/
     width: 200px;
     display: inline-block;
     vertical-align:top;
@@ -105,7 +100,6 @@ body {
 }
 
 #current-bills {
-    /*border: 1px solid black;*/
     width: 330px;
     display: inline-block;
     vertical-align:top;
@@ -121,6 +115,7 @@ body {
 
 #front-bill-counts a {
     text-decoration: none;
+    color: #000000;
 }
 
 .front-item-container{
@@ -129,10 +124,10 @@ body {
 
 .front-item-box {
     display: inline-block;
-    height: 35px; /*Specify Height*/
-    width:  50px; /*Specify Width*/
-    border: 1px solid #2E3041; /*Add 1px solid border, use any color you want*/
-    background-color: #2E3041; /*Add a background color to the box*/
+    height: 35px;
+    width:  50px;
+    border: 1px solid #2E3041;
+    background-color: #2E3041;
     text-align:center;
     vertical-align:top;
     padding: 0px 0px 0px 0px;
@@ -140,7 +135,6 @@ body {
 
 .front-item-box a {
     color:#FFFFFF;
-    /*text-decoration: none;*/
     vertical-align:middle;
 }
 
@@ -156,10 +150,10 @@ body {
 
 .bill-summery-box {
     display: inline-block;
-    height: 35px; /*Specify Height*/
-    width:  50px; /*Specify Width*/
-    border: 1px solid #2E3041; /*Add 1px solid border, use any color you want*/
-    background-color: #2E3041; /*Add a background color to the box*/
+    height: 35px;
+    width:  50px;
+    border: 1px solid #2E3041;
+    background-color: #2E3041;
     text-align:center;
     vertical-align:top;
     padding: 0px 0px 0px 0px;
@@ -175,6 +169,35 @@ body {
     display: inline-block;
     width:  75%;
     margin: 0px 0px 0px 5px;
+}
+
+.small-leg-element {
+    width: 100%;
+    display: block;
+}
+
+.small-leg-element a {
+    display: inline;
+    text-decoration: none;
+}
+
+.small-leg-element img {
+    display: inline;
+    width:25px;
+}
+
+.small-leg-element-name-gop {
+    display: inline;
+    color:#FF0000;
+}
+
+.small-leg-element-name-dfl {
+    display: inline;
+    color:#0000FF;
+}
+
+.small-leg-element-name-data {
+    display: inline;
 }
 
 .breadcrumb {
@@ -233,17 +256,13 @@ h2 {
 }
 
 #content {
-    /*display: block;*/
-    /*width: 800px;*/
     margin: 15px 0px 0px 0px;
-    /*border: 1px solid black;*/
 }
 
 #main-title {
     display: inline-block;
-    /*float: left;*/
     color: #FFFFFF;
-    font-size: 2em;
+    font-size: 32px;
     font-weight: bold;
     text-align: center;
     margin: 15px 5px 0px 10px;
@@ -258,16 +277,14 @@ h2 {
 #tagline {
     display: inline-block;
     color: #A0C3E9;
-    font-size: 1em;
+    font-size: 14px;
     margin: 0px 5px 0px 5px;
-    /*margin: 15px 5px 0px 10px;*/
     text-decoration: none;
 }
 
 #menu-bar {
-    display: inline-block;
-    /*float: right;*/
-    margin: 0px 5px 0px 40px;
+    display: inline;
+    margin: 0px 7px 0px 15px;
 } 
 
 #menu-bar a {
@@ -276,10 +293,10 @@ h2 {
 } 
 
 .menu-item {
-    margin: 0px 7px 0px 7px;
+    margin: 0px 6px 0px 6px;
     text-align: center;
     font-weight: bold;
-    font-size: .85em;
+    font-size: 12px;
     color: #FFFFFF;
 }
 
@@ -310,8 +327,15 @@ h2 {
     font-size: .80em;
 }
 
+.accordion {
+
+}
+
+.sub-accordion {
+  margin-left:25px;
+}
+
 #photos {
-   /* Prevent vertical gaps */
    line-height: 0;
    width:360px;
    -webkit-column-count: 6;
@@ -324,8 +348,79 @@ h2 {
 }
 
 #photos img {
-  /* Just in case there are inline attributes */
   width: 60px !important;
   height: auto !important;
 }
 
+#breadcrumbs-one{
+  background: #eee;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #f5f5f5 #e5e5e5 #ccc;
+  border-radius: 5px;
+  box-shadow: 0 0 2px rgba(0,0,0,.2);
+  overflow: hidden;
+  width: 100%;
+}
+
+#breadcrumbs-one li{
+  float: left;
+}
+
+#breadcrumbs-one a{
+  padding: .7em 1em .7em 2em;
+  float: left;
+  text-decoration: none;
+  color: #444;
+  position: relative;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  background-color: #ddd;
+  background-image: linear-gradient(to right, #f5f5f5, #ddd);  
+}
+
+#breadcrumbs-one li:first-child a{
+  padding-left: 1em;
+  border-radius: 5px 0 0 5px;
+}
+
+#breadcrumbs-one a:hover{
+  background: #fff;
+}
+
+#breadcrumbs-one a::after,
+#breadcrumbs-one a::before{
+  content: "";
+  position: absolute;
+  top: 50%;
+  margin-top: -1.5em;   
+  border-top: 1.5em solid transparent;
+  border-bottom: 1.5em solid transparent;
+  border-left: 1em solid;
+  right: -1em;
+}
+
+#breadcrumbs-one a::after{ 
+  z-index: 2;
+  border-left-color: #ddd;  
+}
+
+#breadcrumbs-one a::before{
+  border-left-color: #ccc;  
+  right: -1.1em;
+  z-index: 1; 
+}
+
+#breadcrumbs-one a:hover::after{
+  border-left-color: #fff;
+}
+
+#breadcrumbs-one .current,
+#breadcrumbs-one .current:hover{
+  font-weight: bold;
+  background: none;
+}
+
+#breadcrumbs-one .current::after,
+#breadcrumbs-one .current::before{
+  content: normal;  
+}

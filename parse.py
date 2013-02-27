@@ -20,11 +20,21 @@ class Committee(parse_rest.Object):
     	com = Committee.Query.all().eq(com_id=com_id)
     	return com
 
+    def get_by_chamber(cls,chamber):
+        com = Committee.Query.all().eq(chamber=chamber)
+        return com
+
 class District(parse_rest.Object):
     @classmethod
     def get_by_id(cls,dist_id):
     	dist = District.Query.all().eq(dist_id=dist_id)
     	return dist
+
+class Event(parse_rest.Object):
+    @classmethod
+    def get_by_key(cls,key):
+        event = Event.Query.all().eq(key=key)
+        return event
 
 class BillCounts(parse_rest.Object):
     pass

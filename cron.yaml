@@ -1,13 +1,16 @@
 cron:
 - description: house events
-  url: /cron/events/house
-  schedule: every 3 hours
+  url: /parse/events/house
+  schedule: every day 03:20
 - description: senate events
-  url: /cron/events/senate
-  schedule: every 3 hours
-- description: front page
-  url: /cron/front
-  schedule: every 15 minutes
+  url: /parse/events/senate
+  schedule: every day 03:10
 - description: parse front
   url: /parse/front
   schedule: every day 03:00
+- description: front page
+  url: /cron/front
+  schedule: every 15 minutes
+- description: events page
+  url: /cron/events
+  schedule: every day 04:00

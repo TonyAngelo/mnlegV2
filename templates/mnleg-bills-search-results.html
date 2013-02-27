@@ -1,20 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-<div class='breadcrumb'><a href='/bills'>bills</a> > search: {% if keyword %}{{keyword}}{% endif %}{% if author %}{{author}}{% endif %}</div>
+<ul id="breadcrumbs-one">
+    <li><a href="/bills">bills</a></li>
+    <li><a href="" class="current">search: {% if keyword %}{{keyword}}{% endif %}{% if author %}{{author_data.first_name}} {{author_data.last_name}}{% endif %}</a></li>
+</ul>
 <br>
-<h2 style="display:inline">search for: {% if keyword %}{{keyword}}{% elif author %}{{author}}{% endif %}</h2>
-
 <div id='sort-methods'>
 	sort: <a href="/bills?{% if keyword %}k={{keyword}}{% elif author %}l={{author}}{% endif %}&s=asc">asc</a> | <a href="/bills?{% if keyword %}k={{keyword}}{% elif author %}l={{author}}{% endif %}&s=dec">dec</a>
 </div>
-
-<dl>
-	{% for b in bills %}
-			<dt><a href="/bills/{{b.session}}/{{b.bill_id}}">{{b.bill_id}}</a></dt>
-			<dd>{{b.title}}</dd>
-	{% endfor %}
-</dl>
+<br>
+{% for b in bills %}
+<div class="bill-summery-container"><div class="bill-summery-box"><a href="/bills/{{b.session}}/{{b.bill_id}}">{{b.bill_id[:2]}}<br><span style="font-weight:bold;">{{b.bill_id[3:]}}</span></a></div><div class="bill-summery-text">{{b.title}}</div></div>
+{% endfor %}
 
 {% endblock %}

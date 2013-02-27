@@ -97,18 +97,14 @@
       }
     </style>
 
-<div class='breadcrumb'><a href='/districts{% if data.chamber=='lower' %}?q=house{% endif %}'>districts</a> > {{data.name}}</div>
-
-<h2>{% if data.chamber=='upper' %}
-		Senate District
-	{% else %}
-		House District
-	{% endif %}
-	{{data.name}}
-</h2>
-click district for details<br><br>
+<ul id="breadcrumbs-one">
+    <li><a href='/districts?q={% if data.chamber=="lower" %}house{% else %}senate{% endif %}'>districts</a></li>
+    <li><a href="" class="current">{% if data.chamber=='upper' %}Senate{% else %}House{% endif %} District {{data.name}}</a></li>
+</ul>
+<br>
 <div id="map_canvas" style="width:800px;height:500px;"></div><br>
 ne: {{data.bbox[1][0]}},{{data.bbox[1][1]}} sw: {{data.bbox[0][0]}}, {{data.bbox[0][1]}}
+<span style="margin:0px 0px 0px 250px">click district overlay for details
 <br><br>
 <table>
   <caption><h3>District Demographics</h3></caption>
