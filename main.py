@@ -375,14 +375,20 @@ class LegislatorHandler(GenericHandler):
 class AllCommitteesHandler(GenericHandler):
     def get(self):
         params=self.check_login('committees')
-        if 'loggedin_user' not in params:
-            self.redirect('/signup')
+        chamber=self.request.get("q")
+        if chamber!="house" and chamber!="senate" and chamber:
+            self.redirect('/')
         else:
             params['chamber']='upper'
             if self.request.get("q")=="house":
                 params['chamber']='lower'
-            params['committees']=getCommitteesByChamber(params['chamber'])
-            self.render(all_committees_page, **params)
+            page=getFromCache(params['chamber']+'_committees_page')
+            if not page:
+                params['committees']=getCommitteesByChamber(params['chamber'])
+                #self.render(all_committees_page, **params)
+                self.cache_render(params['chamber']+'_committees_page',all_committees_page, **params)
+            else:
+                self.write(page)
 
 class CommitteeHandler(GenericHandler):
     def get(self,com_id):
@@ -444,10 +450,10 @@ class AllDistrictsHandler(GenericHandler):
             self.redirect('/signup')
         else:
             params['districts']=getAllDistricts()
-            # sen_hpvi=getHPVIbyChamber('upper')
-            # house_hpvi=getHPVIbyChamber('lower')
-            # # params['sen_hpvi']=
-            # # params['house_hpvi']=
+            params['sen_hpvi']=getHPVIbyChamber('upper',True)
+            params['house_hpvi']=getHPVIbyChamber('lower',True)
+            params['senate']=[39,28]
+            params['house']=[73,61]
             self.render(districts_page, **params)
             #self.write(sen_hpvi)
 

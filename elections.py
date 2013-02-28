@@ -5,6 +5,8 @@ from utils import get_contents_of_url,getFromCache,putInCache
 
 senate_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB68&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=0&headers=1'
 house_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=A1%3AB135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=1'
+senate_raw_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=C2%3AC68&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=0&headers=0'
+house_raw_hpvi_feed_url='https://docs.google.com/spreadsheet/tq?range=C2%3AC135&key=0Ao3iZjz2mPXEdE15b2JvWmRzdXp3d05YLW9BN3IzMXc&gid=1&headers=0'
 senate_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=30'
 house_2012_election_results='http://electionresults.sos.state.mn.us/ENR/Results/MediaResult/1?mediafileid=20'
 mnleg_district_demo_info='http://www.gis.leg.mn/redist2010/Legislative/L2012/text/'
@@ -46,11 +48,33 @@ def fetchHousehPVIfeed():
 		hpvi[r['c'][0]['v']]=r['c'][1]['v']
 	return hpvi
 
-def getHPVIbyChamber(chamber):
-	if chamber=='upper':
-		hpvi=fetchSenatehPVIfeed()
+def fetchRawSenatehPVIfeed():
+	response = get_contents_of_url(senate_raw_hpvi_feed_url)
+	data=json.loads(response[62:-2])
+	hpvi=[]
+	for r in data['table']['rows']:
+		hpvi.append(r['c'][0]['v'])
+	return sorted(hpvi)
+
+def fetchRawHousehPVIfeed():
+	response = get_contents_of_url(house_raw_hpvi_feed_url)
+	data=json.loads(response[62:-2])
+	hpvi=[]
+	for r in data['table']['rows']:
+		hpvi.append(r['c'][0]['v'])
+	return sorted(hpvi)
+
+def getHPVIbyChamber(chamber,raw=False):
+	if raw:
+		if chamber=='upper':
+			hpvi=fetchRawSenatehPVIfeed()
+		else:
+			hpvi=fetchRawHousehPVIfeed()
 	else:
-		hpvi=fetchHousehPVIfeed()
+		if chamber=='upper':
+			hpvi=fetchSenatehPVIfeed()
+		else:
+			hpvi=fetchHousehPVIfeed()
 	return hpvi
 
 def getHPVIbyDistrict(district):

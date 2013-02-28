@@ -2,27 +2,23 @@
 
 {% block content %}
 <script type="text/javascript">
-  $(function() {
-    $( ".chambers" ).button();
-  });
 	$(function() {
-    var currentLegs = [
-        {% if search_page %}{% for l in legislators %}
-        {label:'{{l.first_name}} {{l.last_name}}',
-        value:'{{l.leg_id}}',},
-        {% endfor %}{% endif %} 
-      ];
-      $( "#legs" ).autocomplete({
-        source: currentLegs
+    $( ".selected-chamber" ).button({
+        icons: { primary: "ui-icon-triangle-1-e" }
       });
+    $( ".chamber" ).button();
+    var currentLegs = [
+      {% if search_page %}{% for l in legislators %}{label:'{{l.first_name}} {{l.last_name}}', value:'{{l.leg_id}}',},{% endfor %}{% endif %} 
+    ];
+    $( "#legs" ).autocomplete({
+        source: currentLegs
     });
+  });
 </script>
 <ul id="breadcrumbs-one">
     <li><a href="" class="current">Minnesota Legislators</a></li>
 </ul>
-<br>
-<a class="chambers" href="/legislators?q=senate">Senate</a>
-<a class="chambers" href="/legislators?q=house">House</a>
+<br>{% if chamber=="upper" %}<a class="selected-chamber" href="/legislators?q=senate">Senate</a> <a class="chamber" href="/legislators?q=house">House</a>{% else %}<a class="chamber" href="/legislators?q=senate">Senate</a> <a class="selected-chamber" href="/legislators?q=house">House</a>{% endif %}
 
 <div style="display:inline; float:right;">
 <form method="post">

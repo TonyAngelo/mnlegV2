@@ -18,6 +18,12 @@ ul{
     float: right;
 }
 
+/******************************************************************
+*******************************************************************
+************************  Front page  *************************
+*******************************************************************
+******************************************************************/
+
 #front-dashboard-container {
     
 }
@@ -29,10 +35,6 @@ ul{
 
 #front-dashboard-container a {
     text-decoration: none;
-}
-
-#front-leg-charts-container {
-    padding: 0px 20px;
 }
 
 #member-breakdowns {
@@ -200,9 +202,9 @@ ul{
     display: inline;
 }
 
-.breadcrumb {
+/*.breadcrumb {
     font-size: .85em;
-}
+}*/
 
 .upper-login-area {
     font-size: 13px;
@@ -327,13 +329,93 @@ h2 {
     font-size: .80em;
 }
 
-.accordion {
+/******************************************************************
+*******************************************************************
+************************  Districts page  *************************
+*******************************************************************
+******************************************************************/
 
+#districts-page-selection-container {
+  width: 90%;
+  margin-right: auto;
+  margin-left: auto;
+  display: block;
 }
 
-.sub-accordion {
-  margin-left:25px;
+.districts-page-selection-container-element {
+  display: inline-block;
+  float: left;
+  height: 120px;
+  margin-left: 20px;
+  margin-right: 20px;
 }
+
+.districts-page-selection-container-selector {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#districts-page-graphs-container {
+  width: 85%;
+  margin-top: 25px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#districts-page-graphs-container h3 {
+  margin-bottom: 0px;
+}
+
+#sen-pie-container {
+  display:block;
+  width:125px;
+  float: right;
+}
+
+#sen-pie-container-title {
+  width: 50%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#sen-pie-container-pie {
+  width: 35%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#house-pie-container {
+  display:block;
+  width:125px;
+  float: right;
+}
+
+#house-pie-container-title {
+  width: 95%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#house-pie-container-pie {
+  width: 35%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#sen-district-hpvi-graph {
+  display:inline-block;
+}
+
+#house-district-hpvi-graph {
+  display:inline-block;
+}
+
+/******************************************************************
+*******************************************************************
+****************************  Photos  *****************************
+*******************************************************************
+******************************************************************/
 
 #photos {
    line-height: 0;
@@ -351,6 +433,12 @@ h2 {
   width: 60px !important;
   height: auto !important;
 }
+
+/******************************************************************
+*******************************************************************
+*************************  Breadcrumbs  ***************************
+*******************************************************************
+******************************************************************/
 
 #breadcrumbs-one{
   background: #eee;
