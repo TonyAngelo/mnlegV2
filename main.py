@@ -20,7 +20,7 @@ import os
 import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
-                    clear_cache,getFromCache,putInCache,)
+                    clear_cache,getFromCache,putInCache,get_contents_of_url,)
 from mnleg import (getSessionNames,getBillNames,getBillById,getBillText,
                     getCurrentLegislators,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
@@ -33,12 +33,6 @@ from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 from feeds import getMNHouseSessionDaily,getTownhallFeed
 from models import User
-
-# set up jinja templates
-template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-                               autoescape = True,
-                               extensions=['jinja2.ext.autoescape'])
 
 # define template pages
 main_page="front.html"
@@ -97,6 +91,29 @@ def getSortValue(string):
     if string=='asc':
         result=False
     return result
+
+class MyLoader(jinja2.BaseLoader):
+    def __init__(self, path):
+        self.path = path
+
+    def get_source(self, environment, template):
+        path = self.path+template
+        page=get_contents_of_url(path)
+        if not page:
+            raise jinja2.TemplateNotFound(template)
+        #mtime = os.path.getmtime(path)
+        #with file(path) as f:
+        source = page.decode('utf-8')
+        return source, path, lambda: False #lambda: mtime == os.path.getmtime(path)
+
+
+# set up jinja templates
+# aws template location
+aws_templates='https://s3.amazonaws.com/mnleginfo/templates/'
+#template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+jinja_env = jinja2.Environment(loader = MyLoader(aws_templates),
+                               autoescape = True,
+                               extensions=['jinja2.ext.autoescape'])
 
 # generic page handler
 class GenericHandler(webapp2.RequestHandler):
@@ -165,10 +182,10 @@ class MainHandler(GenericHandler):
         if not page:
             params['house_daily_items']=getMNHouseSessionDaily(5)
             params['current_bills']=getCurrentBills(5)
-            params['dfl_senators']=39
-            params['gop_senators']=28
-            params['dfl_reps']=73
-            params['gop_reps']=61
+            # params['dfl_senators']=39
+            # params['gop_senators']=28
+            # params['dfl_reps']=73
+            # params['gop_reps']=61
             bill_counts=getBillCounts()
             params['top']=bill_counts[:10]
             #params['bottom']=bill_counts[-10:]
@@ -218,10 +235,14 @@ class SessionsHandler(GenericHandler):
                 params['author_data']=getLegislatorByID(leg)
                 self.render(bills_search_results_page, **params)
             else:
-                params["sessions"],params["details"]=getSessionNames()
-                params['legislators']=getCurrentLegislators()
-                params['search_page']="True"
-                self.render(bills_search_page, **params)
+                page=getFromCache('bills_search_page')
+                if not page:
+                    params["sessions"],params["details"]=getSessionNames()
+                    params['legislators']=getCurrentLegislators()
+                    params['search_page']="True"
+                    self.cache_render('bills_search_page',bills_search_page, **params)
+                else:
+                    self.write(page)
 
     def post(self):
         params={}
@@ -340,9 +361,13 @@ class LegislatureHandler(GenericHandler):
             if self.request.get("q")=="house":
                 params['chamber']='lower'
                 params['chamber_name']='House'
-            params['legislators']=getCurrentLegislators()
-            params['search_page']="True"
-            self.render(current_legislators_page, **params)
+            page=getFromCache(params['chamber']+'_legislators_page')
+            if not page:
+                params['legislators']=getCurrentLegislators()
+                params['search_page']="True"
+                self.cache_render(params['chamber']+'_legislators_page',current_legislators_page, **params)
+            else:
+                self.write(page)
 
     def post(self): # for handling leg searches
         params={}
@@ -449,13 +474,16 @@ class AllDistrictsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            params['districts']=getAllDistricts()
-            params['sen_hpvi']=getHPVIbyChamber('upper',True)
-            params['house_hpvi']=getHPVIbyChamber('lower',True)
-            params['senate']=[39,28]
-            params['house']=[73,61]
-            self.render(districts_page, **params)
-            #self.write(sen_hpvi)
+            page=getFromCache('all_districts_page')
+            if not page:
+                params['districts']=getAllDistricts()
+                params['sen_hpvi']=getHPVIbyChamber('upper',True)
+                params['house_hpvi']=getHPVIbyChamber('lower',True)
+                params['senate']=[39,28]
+                params['house']=[73,61]
+                self.cache_render('all_districts_page',districts_page, **params)
+            else:
+                self.write(page)
 
     def post(self):
         district_id=self.request.get("districts")
