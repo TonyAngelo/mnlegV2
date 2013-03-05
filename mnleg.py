@@ -589,9 +589,10 @@ def getDistrictById(district_id): # individual district
  		if legislator!=None:
 	 		data['legislator']=legislator
 
-	 	demo=fetchDistrictDemoData(data['boundary_id'])
+	 	demo,url=fetchDistrictDemoData(data['boundary_id'])
 	 	if demo!=None:
 	 		data['district_demo']=demo
+	 		data['district_demo_url']=url
 
 	 	election=get2012ElectionResultsbyDistrict(data['name'],data['chamber'])
 	 	if election!=None:

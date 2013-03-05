@@ -30,7 +30,7 @@ def fetchDistrictDemoData(district):
 			demographics[w]=v
 			if len(page)<=0:
 				loop=False
-	return demographics
+	return demographics,url
 
 def fetchSenatehPVIfeed():
 	response = get_contents_of_url(senate_hpvi_feed_url)

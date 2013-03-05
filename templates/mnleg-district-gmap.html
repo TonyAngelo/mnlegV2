@@ -105,11 +105,17 @@
 <div id="map_canvas" style="width:800px;height:500px;"></div><br>
 ne: {{data.bbox[1][0]}},{{data.bbox[1][1]}} sw: {{data.bbox[0][0]}}, {{data.bbox[0][1]}}
 <span style="margin:0px 0px 0px 250px">click district overlay for details
-<br><br>
-<table>
-  <caption><h3>District Demographics</h3></caption>
-  <tr><td width='100px'></td><td width='100px'><strong>Total</strong></td><td width='100px'><strong>%</strong></td><td width='100px'><strong>18+</strong></td><td width='100px'><strong>18+ %</strong></td></tr>
 
+<table id='district-demo' summary='district demographics'>
+<thead>
+  <tr><th>Demographics</th><th>Total</th><th>%</th><th>18+</th><th>18+ %</th></tr>
+</thead>
+<tfoot>
+<tr>
+<td colspan="5"><em>source: <a href='{{data.district_demo_url}}' target='_blank'>http://www.gis.leg.mn</a></em></td>
+</tr>
+</tfoot>
+<tbody>
   <tr><td>White: </td><td>{{data.district_demo['White']}}</td><td>{{data.district_demo['Percentage White']}}</td><td>{{data.district_demo['18+ White']}}</td><td>{{data.district_demo['Percent 18+ White']}}</td></tr>
 
   <tr><td>Minority: </td><td>{{data.district_demo['Total Minority']}}</td><td>{{data.district_demo['Percent Total Minority']}}</td><td>{{data.district_demo['18+ Minority']}}</td><td>{{data.district_demo['Percent 18+ Minority']}}</td></tr>
@@ -122,7 +128,7 @@ ne: {{data.bbox[1][0]}},{{data.bbox[1][1]}} sw: {{data.bbox[0][0]}}, {{data.bbox
 
   <tr><td>Asian: </td><td>{{data.district_demo['Asian']}}</td><td>{{data.district_demo['Percent Asian']}}</td><td>{{data.district_demo['18+ Asian']}}</td><td>{{data.district_demo['Percent 18+ Asian']}}</td></tr>
 
-  <tr><td><strong>Total</strong>: </td><td><strong>{{data.district_demo['Population']}}</strong></td><td></td><td></td><td></td></tr>
+  <tr><td><strong>Total</strong>: </td><td><strong>{{data.district_demo['Population']}}</strong></td><td></td><td></td><td></td></tr></tbody>
 </table>
 <br><br>
 {% endblock %}

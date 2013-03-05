@@ -37,49 +37,6 @@ ul{
     text-decoration: none;
 }
 
-#member-breakdowns {
-    width: 800px;
-    padding: 10px;
-}
-
-#member-breakdowns a {
-    
-}
-
-.senate-breakdown {
-    display: inline-block;
-    margin: 0px 20px 0px 0px;
-    width: 240px;
-    line-height:50%
-}
-
-.house-breakdown {
-    display: inline-block;
-    margin: 0px 0px 0px 0px;
-    width: 470px;
-    line-height:50%
-}
-
-.dfl-member {
-    display: inline-block;
-    height: 5px; 
-    width:  3px;
-    border: 1px solid #0000FF; 
-    background-color: #0000FF; 
-    margin: 1px;
-    padding: 0px;
-}
-
-.gop-member {
-    display: inline-block;
-    height: 5px;
-    width:  3px; 
-    border: 1px solid #FF0000;
-    background-color: #FF0000;
-    margin: 1px;
-    padding: 0px;
-}
-
 #front-house-daily {
     width: 250px;
     display: block;
@@ -356,6 +313,50 @@ h2 {
   margin-right: auto;
 }
 
+#member-breakdowns {
+  width: 750px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+#member-breakdowns a {
+    text-decoration: none;
+}
+
+.senate-breakdown {
+    display: inline-block;
+    margin: 0px 20px 0px 0px;
+    width: 240px;
+    line-height:50%
+}
+
+.house-breakdown {
+    display: inline-block;
+    margin: 0px 0px 0px 0px;
+    width: 470px;
+    line-height:50%
+}
+
+.dfl-member {
+    display: inline-block;
+    height: 5px; 
+    width:  3px;
+    border: 1px solid #0000FF; 
+    background-color: #0000FF; 
+    margin: 1px;
+    padding: 0px;
+}
+
+.gop-member {
+    display: inline-block;
+    height: 5px;
+    width:  3px; 
+    border: 1px solid #FF0000;
+    background-color: #FF0000;
+    margin: 1px;
+    padding: 0px;
+}
+
 #districts-page-graphs-container {
   width: 85%;
   margin-top: 25px;
@@ -410,6 +411,45 @@ h2 {
 #house-district-hpvi-graph {
   display:inline-block;
 }
+
+/******************************************************************
+*******************************************************************
+***************************  District  ****************************
+*******************************************************************
+******************************************************************/
+
+#district-demo {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  font-size: 12px;
+  margin: 25px 0px 25px 0px;
+  /*width: 480px;*/
+  text-align: left;
+  border-collapse: collapse;
+  border: 1px solid #69c;
+}
+
+#district-demo th {
+  padding: 15px 10px 10px 10px;
+  font-weight: normal;
+  font-size: 14px;
+  color: #039;
+}
+
+#district-demo tbody {
+  background: #e8edff;
+}
+
+#district-demo td {
+  padding: 10px;
+  color: #669;
+  border-top: 1px dashed #fff;
+}
+
+#district-demo tbody tr:hover td {
+  color: #339;
+  background: #d0dafd;
+}
+
 
 /******************************************************************
 *******************************************************************

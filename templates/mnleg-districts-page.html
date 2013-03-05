@@ -23,7 +23,16 @@
 	<input type="submit" value="Select"></form></div>
 </div>
 </div>
-
+<div id='member-breakdowns'>
+	<div class='senate-breakdown'>
+		<a href='/legislators?q=senate'><h3>Senate Membership</h3></a>
+		{% for n in range(senate[0]) %}<div class='dfl-member'></div>{% endfor %}{% for n in range(senate[1]) %}<div class='gop-member'></div>{% endfor %}
+	</div>
+	<div class='house-breakdown'>
+		<a href='/legislators?q=house'><h3>House Membership</h3></a>
+		{% for n in range(house[0]) %}<div class='dfl-member'></div>{% endfor %}{% for n in range(house[1]) %}<div class='gop-member'></div>{% endfor %}
+	</div>
+</div>
 <div id='districts-page-graphs-container'>
 <div id="sen-district-hpvi-graph"><h3>Senate hPVI</h3>
 <span id='sen_hpvi'></span></div>
