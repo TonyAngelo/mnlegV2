@@ -39,7 +39,7 @@ search by keyword<br><br>
 <br><br>
 <form method="post" name='bill'>
 or search by bill<br><br>
-<input size="10" placeholder="(ex. SF 1)" name="bill" value="{{bill}}" pattern="([Ss|Hh][A-Za-z] [0-9]+)" onfocus="setFocus(0,4)"> 
+<input size="10" placeholder="(ex. SF 1)" name="bill" value="{{bill}}" pattern="([Ss|Hh][A-Za-z] ?[0-9]+)" onfocus="setFocus(0,4)"> 
 <select name='session'>
 	{% for s in sessions %}
 	 	<option value="{{s}}">{{details[s]['display_name']}}</option>

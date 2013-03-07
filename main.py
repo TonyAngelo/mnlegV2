@@ -66,13 +66,35 @@ event_types={
     'all':'all',
 }
 
+# environment loader, load template from aws
+
+class MyLoader(jinja2.BaseLoader):
+    def __init__(self, path):
+        self.path = path
+
+    def get_source(self, environment, template):
+        path = self.path+template
+        page=get_contents_of_url(path)
+        if not page:
+            raise jinja2.TemplateNotFound(template)
+        #mtime = os.path.getmtime(path)
+        #with file(path) as f:
+        source = page.decode('utf-8')
+        return source, path, lambda: False #lambda: mtime == os.path.getmtime(path)
+
+# set up jinja templates
+aws_templates='https://s3.amazonaws.com/mnleginfo/templates/' # aws template location
+jinja_env = jinja2.Environment(loader = MyLoader(aws_templates),
+                               autoescape = True,
+                               extensions=['jinja2.ext.autoescape'])
+
 # misc functions
 def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
 def render_signup_email_body(user,email,user_ip):
-	return sign_up_body+"\n"+"Username: "+user+"\n"+"Email: "+email+"/n"+"IP: "+user_ip
+    return sign_up_body+"\n"+"Username: "+user+"\n"+"Email: "+email+"/n"+"IP: "+user_ip
 
 def updateBillInfoPageParams(params,bill,session):
     params['bill_info']=getBillById(bill,session)
@@ -91,29 +113,6 @@ def getSortValue(string):
     if string=='asc':
         result=False
     return result
-
-class MyLoader(jinja2.BaseLoader):
-    def __init__(self, path):
-        self.path = path
-
-    def get_source(self, environment, template):
-        path = self.path+template
-        page=get_contents_of_url(path)
-        if not page:
-            raise jinja2.TemplateNotFound(template)
-        #mtime = os.path.getmtime(path)
-        #with file(path) as f:
-        source = page.decode('utf-8')
-        return source, path, lambda: False #lambda: mtime == os.path.getmtime(path)
-
-
-# set up jinja templates
-# aws template location
-aws_templates='https://s3.amazonaws.com/mnleginfo/templates/'
-#template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = MyLoader(aws_templates),
-                               autoescape = True,
-                               extensions=['jinja2.ext.autoescape'])
 
 # generic page handler
 class GenericHandler(webapp2.RequestHandler):
@@ -250,6 +249,8 @@ class SessionsHandler(GenericHandler):
         if submit=='Search by Bill':
             bill=self.request.get("bill")
             session=self.request.get("session")
+            if bill.find(' ')==-1:
+                bill=bill[:2]+' '+bill[2:]
             # session=self.request.get("session")
             # updateBillInfoPageParams(params,bill,session)
             self.redirect('/bills/'+session+'/'+bill)
@@ -282,6 +283,8 @@ class BillInfoHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
+            if bill.find(' ')==-1:
+                bill=bill[:2]+' '+bill[2:]
             updateBillInfoPageParams(params,bill,session)
             self.render(bill_info_page, **params)
 
@@ -363,7 +366,7 @@ class LegislatureHandler(GenericHandler):
                 params['chamber_name']='House'
             page=getFromCache(params['chamber']+'_legislators_page')
             if not page:
-                params['legislators']=getCurrentLegislators()
+                params['legislators']=getCurrentLegislators(params['chamber'])
                 params['search_page']="True"
                 self.cache_render(params['chamber']+'_legislators_page',current_legislators_page, **params)
             else:
@@ -388,10 +391,10 @@ class LegislatorHandler(GenericHandler):
         else:
             params['legislator']=getLegislatorByID(leg_id)
             districts=getAllDistricts()
-            if params['legislator']['active']:
+            if params['legislator'].active:
                 params['bills']=getBillsbyAuthor(leg_id)
                 for d in districts:
-                    if d['name']==params['legislator']['district']:
+                    if d['name']==params['legislator'].district:
                         params['boundary_id']=d['boundary_id']
             else:
                 params['bills']=getBillsbyAuthor(leg_id,'all')
@@ -603,7 +606,7 @@ app = webapp2.WSGIApplication([
     ('/cron/events/?', CronEventsHandler),
     ('/bills/?', SessionsHandler),
     ('/bills/([0-9A-Za-z- %]+)/?', BillsHandler),
-    ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%][0-9]+)/?', BillInfoHandler),
+    ('/bills/([0-9A-Za-z- %]+)/([H|S][A-Z][ |%]?[0-9]+)/?', BillInfoHandler),
     ('/parse/front/?', ParseMainHandler),
     ('/parse/legislators/?', ParseLegislatorHandler),
     ('/parse/committees/?', ParseCommitteesHandler),

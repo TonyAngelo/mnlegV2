@@ -4,7 +4,7 @@
 
 <ul id="breadcrumbs-one">
     <li><a href="/legislators?q={% if legislator.chamber=='lower' %}house{% else %}senate{% endif %}">legislators</a></li>
-    <li><a href="" class="current">{% if legislator.chamber=='upper' %}Senator{% else %}Representative{% endif %} {{legislator.first_name}} {{legislator.last_name}}</a></li>
+    <li><a href="" class="current">{% if legislator.chamber=='upper' %}Senator{% else %}Representative{% endif %} {{legislator.full_name}}</a></li>
 </ul>
 <br>
 <table width="800px">

@@ -671,23 +671,34 @@ def getAllCommittees(): # committees front page
 
 def getCommitteesByChamber(chamber='upper'):
 	data=[]
-	com=Committee.Query.all().eq(chamber=chamber)
+	com=Committee.Query.all().eq(chamber=chamber).order_by("name")
 	for c in com:
 		data.append(c)
-	return sorted(data, key=lambda data: data.name,reverse=False)
+	#return sorted(data, key=lambda data: data.name,reverse=False)
+	return data
 
 def getCommitteeById(com_id): # committee page
 	data=getCommitteeDictByID(com_id)
 	return data
 
-def getCurrentLegislators(): # legislators page
+def getCurrentLegislators(chamber='upper'): # legislators page
 	#data=cacheDance('legislators',getMNLegislatorByActive, None)
-	data=getMNLegislatorByActive()
-	return data
+	# data=getMNLegislatorByActive()
+	# return data
+	data=[]
+	leg=Legislator.Query.all().eq(chamber=chamber)#.order_by("district")
+	for l in leg:
+		if l.active:
+			data.append(l)
+	return sorted(data, key=lambda data: data.district,reverse=False)
+	#return data
 
 def getLegislatorByID(leg_id): # individual legislator page
-	data=getMNLegislatorById(leg_id)
-	return data
+	# data=getMNLegislatorById(leg_id)
+	# return data
+	leg=Legislator.Query.all().eq(leg_id=leg_id)
+	for l in leg:
+		return l
 
 def addEventsToParse(which):
 	if which=='senate':
