@@ -21,8 +21,8 @@ import jinja2
 from google.appengine.api import mail
 from utils import (check_secure_val,make_secure_val,check_valid_signup,escape_html,
                     clear_cache,getFromCache,putInCache,get_contents_of_url,)
-from mnleg import (getSessionNames,getBillNames,getBillById,getBillText,
-                    getCurrentLegislators,getLegislatorByID,
+from mnleg import (getSessionNames,getSessionDisplayFromName,getBillNames,getBillById,getBillText,
+                    getAllLegislators,getLegislatorsByChamber,getLegislatorByID,
                     getLegislatorByDistrict,getAllDistrictsByID,
                     getAllCommittees,getCommitteeById,getCommitteesByChamber,
                     getAllEvents,getEventById,getCurrentBills,
@@ -33,6 +33,9 @@ from elections import (getHPVIbyChamber,get2012ElectionResultsbyChamber,
                     get2012ElectionResultsbyDistrict,fetchDistrictDemoData)
 from feeds import getMNHouseSessionDaily,getTownhallFeed
 from models import User
+from boto.s3.key import Key
+import boto
+import ConfigParser
 
 # define template pages
 main_page="front.html"
@@ -67,7 +70,6 @@ event_types={
 }
 
 # environment loader, load template from aws
-
 class MyLoader(jinja2.BaseLoader):
     def __init__(self, path):
         self.path = path
@@ -84,6 +86,7 @@ class MyLoader(jinja2.BaseLoader):
 
 # set up jinja templates
 aws_templates='https://s3.amazonaws.com/mnleginfo/templates/' # aws template location
+aws_output='https://s3.amazonaws.com/mnleginfo/output/' # aws 'cache' location
 jinja_env = jinja2.Environment(loader = MyLoader(aws_templates),
                                autoescape = True,
                                extensions=['jinja2.ext.autoescape'])
@@ -93,16 +96,49 @@ def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
+def connectToAWS():
+    try:
+        config = ConfigParser.ConfigParser()
+        config.read(["etc/boto.cfg"])
+        k=config.get('Credentials','aws_access_key_id')
+        s=config.get('Credentials','aws_secret_access_key')
+        c=boto.connect_s3(k,s)
+        return c
+    except:
+        pass
+
+def getAWSKey(key):
+    c=connectToAWS()
+    if c:
+        b=c.get_bucket('mnleginfo')
+        k=Key(b)
+        k.key=key
+        return k
+    return None
+
+def getKeyFromAWS(key):
+    c=connectToAWS()
+    if c:
+        b=c.get_bucket('mnleginfo')
+        k=b.get_key(key)
+        if k:
+            return k
+    return None
+
 def render_signup_email_body(user,email,user_ip):
     return sign_up_body+"\n"+"Username: "+user+"\n"+"Email: "+email+"/n"+"IP: "+user_ip
 
-def updateBillInfoPageParams(params,bill,session):
+def updateBillInfoPageParams(params,bill,session,text_view):
     params['bill_info']=getBillById(bill,session)
-    url=params['bill_info']['versions'][-1]['url']
-    #params['bill_text']=getBillText(url)
+    if text_view=='y':
+        params['bill_info']['text_view']=text_view
+        url=params['bill_info']['versions'][-1]['url']
+        params['bill_text']=getBillText(url)
+    else:
+        params['bill_info']['text_view']='n'
 
 def get_chamber_name(chamber):
-    if chamber=="House":
+    if chamber=="house":
         body='lower'
     else:
         body='upper'
@@ -132,16 +168,6 @@ class GenericHandler(webapp2.RequestHandler):
 
     def districts_render(self, chamber, **kw):
         page=self.render_str(all_districts_page, **kw)
-        # if chamber=='house':
-        #     putInCache(chamber+'_districts_page1',page[:len(page)/2])
-        #     putInCache(chamber+'_districts_page2',page[len(page)/2:])
-        # elif chamber=='senate':
-        #     putInCache(chamber+'_districts_page',page)
-        self.write(page)
-
-    def district_render(self, district, **kw):
-        page=self.render_str(district_page, **kw)
-        #putInCache('district '+district,page)
         self.write(page)
 
     def set_secure_cookie(self,name,val):
@@ -162,9 +188,6 @@ class GenericHandler(webapp2.RequestHandler):
 
     def check_login(self,path):
     	params=dict(path=path)
-    	# if self.user:
-    	# 	params['loggedin_user']=self.user.name
-     #    else:
         params['loggedin_user']="Guest"
     	return params
 
@@ -181,35 +204,34 @@ class MainHandler(GenericHandler):
         if not page:
             params['house_daily_items']=getMNHouseSessionDaily(5)
             params['current_bills']=getCurrentBills(5)
-            # params['dfl_senators']=39
-            # params['gop_senators']=28
-            # params['dfl_reps']=73
-            # params['gop_reps']=61
             bill_counts=getBillCounts()
             params['top']=bill_counts[:10]
-            #params['bottom']=bill_counts[-10:]
-            # params['average']=bill_counts[98:103]
-            #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
-            #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
             self.cache_render('front_page',main_page, **params)
         else:
             self.write(page)
 
 class CronMainHandler(GenericHandler):
     def get(self):
+        params=self.check_login("/cron/front")
         params['house_daily_items']=getMNHouseSessionDaily(5)
         params['current_bills']=getCurrentBills(5)
-        params['dfl_senators']=39
-        params['gop_senators']=28
-        params['dfl_reps']=73
-        params['gop_reps']=61
         bill_counts=getBillCounts()
         params['top']=bill_counts[:10]
-        #params['bottom']=bill_counts[-10:]
-        # params['average']=bill_counts[98:103]
-        #params['gop_townhalls_title'],params['gop_townhalls'] = getTownhallFeed('gop')
-        #params['dfl_townhalls_title'],params['dfl_townhalls'] = getTownhallFeed('dfl')
         self.cache_render('front_page',main_page, **params)
+
+class AWSMainHandler(GenericHandler):
+    def get(self):
+        params=self.check_login("/aws")
+        c=connectToAWS()
+        if c:
+            self.write('<b>Connected</b><br><br>')
+            buckets=c.get_all_buckets()
+            self.write('Searching AWS Buckets...<br>')
+            for b in buckets:
+                if b.name=='mnleginfo':
+                    self.write('Found "'+b.name+'" bucket!')
+        else:
+            self.write('<b>Not connected</b>')
 
 class SessionsHandler(GenericHandler):
     def get(self):
@@ -226,22 +248,31 @@ class SessionsHandler(GenericHandler):
                 params['bills']=getBillsbyKeyword(keyword,s)
                 self.render(bills_search_results_page, **params)
             elif leg:
-                sort=self.request.get("s")
-                s=getSortValue(sort)
-                params['keyword']=keyword
-                params['author']=leg
-                params['bills']=getBillsbyAuthor(params['author'],sort=s)
-                params['author_data']=getLegislatorByID(leg)
+                params['goodstring']='no'
+                legs=getAllLegislators()
+                for l in legs:
+                    if leg==l.name:
+                        leg=l.leg_id
+                        sort=self.request.get("s")
+                        s=getSortValue(sort)
+                        params['goodstring']='yes'
+                        params['author']=leg
+                        params['bills']=getBillsbyAuthor(params['author'],sort=s)
+                        params['author_data']=getLegislatorByID(leg)
+                        break
+                if params['goodstring']=='no':
+                    params['string']=leg
                 self.render(bills_search_results_page, **params)
+
             else:
-                page=getFromCache('bills_search_page')
-                if not page:
-                    params["sessions"],params["details"]=getSessionNames()
-                    params['legislators']=getCurrentLegislators()
-                    params['search_page']="True"
-                    self.cache_render('bills_search_page',bills_search_page, **params)
-                else:
+                page=get_contents_of_url(aws_output+'bills/front')
+                if page:
                     self.write(page)
+                else:
+                    params["sessions"],params["details"]=getSessionNames()
+                    params['legislators']=getAllLegislators()
+                    params['search_page']="True"
+                    self.render(bills_search_page, **params)
 
     def post(self):
         params={}
@@ -249,10 +280,9 @@ class SessionsHandler(GenericHandler):
         if submit=='Search by Bill':
             bill=self.request.get("bill")
             session=self.request.get("session")
+            bill=bill.upper()
             if bill.find(' ')==-1:
                 bill=bill[:2]+' '+bill[2:]
-            # session=self.request.get("session")
-            # updateBillInfoPageParams(params,bill,session)
             self.redirect('/bills/'+session+'/'+bill)
         elif submit=='Search by Keyword':
             keyword=self.request.get("keyword")
@@ -260,6 +290,19 @@ class SessionsHandler(GenericHandler):
         else:
             author=self.request.get("leg")
             self.redirect('/bills?l='+author)
+
+class AWSSessionsHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('/aws/bills')
+        k=getKeyFromAWS('output/bills/front')
+        if k==None:
+            params["sessions"],params["details"]=getSessionNames()
+            params['legislators']=getAllLegislators()
+            params['search_page']="True"
+            k = getAWSKey('output/bills/front')
+            k.set_contents_from_string(render_str(bills_search_page, **params))
+            k.set_acl('public-read')
+        self.write(k.get_contents_as_string())
         
 class BillsHandler(GenericHandler):
     def get(self,path):
@@ -275,6 +318,7 @@ class BillsHandler(GenericHandler):
             sort=self.request.get('s')
             d=getSortValue(sort)
             params['bills']=getBillNames(path,d)
+            params['session']=getSessionDisplayFromName(path)
             self.render(bills_page, **params)
 
 class BillInfoHandler(GenericHandler):
@@ -283,9 +327,10 @@ class BillInfoHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
+            text_view=self.request.get("t")
             if bill.find(' ')==-1:
                 bill=bill[:2]+' '+bill[2:]
-            updateBillInfoPageParams(params,bill,session)
+            updateBillInfoPageParams(params,bill,session,text_view)
             self.render(bill_info_page, **params)
 
 class ParseMainHandler(GenericHandler):
@@ -302,7 +347,7 @@ class ParseLegislatorHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            legs=getCurrentLegislators()
+            legs=getAllLegislators()
             for l in legs:
                 addLegislatorToParse(l['leg_id'])
 
@@ -356,32 +401,58 @@ class ParseEventsHandler(GenericHandler):
 class LegislatureHandler(GenericHandler):
     def get(self):
         params=self.check_login('legislators')
-        if 'loggedin_user' not in params:
-            self.redirect('/signup')
+        chamber=self.request.get("q")
+        if chamber!="house" and chamber!="senate" and chamber:
+            self.redirect('/')
         else:
             params['chamber']='upper'
             params['chamber_name']="Senate"
             if self.request.get("q")=="house":
                 params['chamber']='lower'
                 params['chamber_name']='House'
-            page=getFromCache(params['chamber']+'_legislators_page')
-            if not page:
-                params['legislators']=getCurrentLegislators(params['chamber'])
-                params['search_page']="True"
-                self.cache_render(params['chamber']+'_legislators_page',current_legislators_page, **params)
-            else:
+            page=get_contents_of_url(aws_output+'legislators/'+params['chamber'])
+            if page:
                 self.write(page)
+            else:
+                params['legislators']=getLegislatorsByChamber(params['chamber'])
+                params['search_page']="True"
+                self.render(current_legislators_page, **params)
 
     def post(self): # for handling leg searches
         params={}
-        leg_id=self.request.get("leg")
-        params['legislator']=getLegislatorByID(leg_id)
-        params['bills']=getBillsbyAuthor(leg_id)
-        districts=getAllDistricts()
-        for d in districts:
-            if d['name']==params['legislator']['district']:
-                params['boundary_id']=d['boundary_id']
-        self.render(legislator_info_page, **params)
+        params['goodstring']='no'
+        submit=self.request.get("submit")
+        if submit=='Search':
+            leg=self.request.get("leg")
+            legs=getAllLegislators()
+            for l in legs:
+                if leg==l.name:
+                    params['goodstring']='yes'
+                    self.redirect('/legislators/'+l.leg_id)
+                    break
+        if params['goodstring']=='no':
+            self.redirect('/legislators')
+
+class AWSLegislatureHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('/aws/legislators')
+        chamber=self.request.get("q")
+        if chamber!="house" and chamber!="senate" and chamber:
+            self.redirect('/')
+        else:
+            params['chamber']='upper'
+            params['chamber_name']="Senate"
+            if self.request.get("q")=="house":
+                params['chamber']='lower'
+                params['chamber_name']='House'
+            k=getKeyFromAWS('output/legislators/'+params['chamber'])
+            if k==None:
+                params['legislators']=getLegislatorsByChamber(params['chamber'])
+                params['search_page']="True"
+                k = getAWSKey('output/legislators/'+params['chamber'])
+                k.set_contents_from_string(render_str(current_legislators_page, **params))
+                k.set_acl('public-read')
+            self.write(k.get_contents_as_string())
 
 class LegislatorHandler(GenericHandler):
     def get(self,leg_id):
@@ -390,6 +461,7 @@ class LegislatorHandler(GenericHandler):
             self.redirect('/signup')
         else:
             params['legislator']=getLegislatorByID(leg_id)
+            #params['legislator'].twitter=['','']
             districts=getAllDistricts()
             if params['legislator'].active:
                 params['bills']=getBillsbyAuthor(leg_id)
@@ -410,13 +482,30 @@ class AllCommitteesHandler(GenericHandler):
             params['chamber']='upper'
             if self.request.get("q")=="house":
                 params['chamber']='lower'
-            page=getFromCache(params['chamber']+'_committees_page')
-            if not page:
-                params['committees']=getCommitteesByChamber(params['chamber'])
-                #self.render(all_committees_page, **params)
-                self.cache_render(params['chamber']+'_committees_page',all_committees_page, **params)
-            else:
+            page=get_contents_of_url(aws_output+'committees/'+params['chamber'])
+            if page:
                 self.write(page)
+            else:
+                params['committees']=getCommitteesByChamber(params['chamber'])
+                self.render(all_committees_page, **params)
+
+class AWSAllCommitteesHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('aws/committees')
+        chamber=self.request.get("q")
+        if chamber!="house" and chamber!="senate" and chamber:
+            self.redirect('/')
+        else:
+            params['chamber']='upper'
+            if self.request.get("q")=="house":
+                params['chamber']='lower'   
+            k=getKeyFromAWS('output/committees/'+params['chamber'])
+            if k==None:
+                params['committees']=getCommitteesByChamber(params['chamber'])
+                k = getAWSKey('output/committees/'+params['chamber'])
+                k.set_contents_from_string(render_str(all_committees_page, **params))
+                k.set_acl('public-read')
+            self.write(k.get_contents_as_string())
 
 class CommitteeHandler(GenericHandler):
     def get(self,com_id):
@@ -437,12 +526,8 @@ class AllEventsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            page=getFromCache('events_page')
-            if not page:
-                params['events']=getAllEvents()
-                self.cache_render('events_page',all_events_page, **params)
-            else:
-                self.write(page)
+            params['events']=getAllEvents()
+            self.render(all_events_page, **params)
 
 class EventsHandler(GenericHandler):
     def get(self,events):
@@ -477,44 +562,69 @@ class AllDistrictsHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            page=getFromCache('all_districts_page')
-            if not page:
-                params['districts']=getAllDistricts()
-                params['sen_hpvi']=getHPVIbyChamber('upper',True)
-                params['house_hpvi']=getHPVIbyChamber('lower',True)
-                params['senate']=[39,28]
-                params['house']=[73,61]
-                self.cache_render('all_districts_page',districts_page, **params)
-            else:
-                self.write(page)
+            self.redirect('/districts/senate')
+            # page=get_contents_of_url(aws_output+'districts/front')
+            # if page:
+            #     self.write(page)
+            # else:
+            #     params['districts']=getAllDistricts()
+            #     params['sen_hpvi']=getHPVIbyChamber('upper',True)
+            #     params['house_hpvi']=getHPVIbyChamber('lower',True)
+            #     params['senate']=[39,28]
+            #     params['house']=[73,61]
+            #     self.render(districts_page, **params)
 
     def post(self):
         district_id=self.request.get("districts")
         self.redirect('/districts/'+str(district_id))
 
+class AWSAllDistrictsHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('aws/districts')
+        k=getKeyFromAWS('output/districts/front')
+        if k==None:
+            self.write('Page not found, uploading...<br>')
+            params['districts']=getAllDistricts()
+            params['sen_hpvi']=getHPVIbyChamber('upper',True)
+            params['house_hpvi']=getHPVIbyChamber('lower',True)
+            params['senate']=[39,28]
+            params['house']=[73,61]
+            k = Key(b)
+            k.key = 'output/districts/front'
+            k.set_contents_from_string(render_str(districts_page, **params))
+            k.set_acl('public-read')
+        self.write(k.get_contents_as_string())
+
 class ChamberDistrictsHandler(GenericHandler):
     def get(self,chamber):
         params=self.check_login('districts/'+chamber)
-        page=''
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            # if chamber=="house":
-            #     params['district_map']='lower'
-            #     p1=getFromCache(chamber+'_districts_page1')
-            #     p2=getFromCache(chamber+'_districts_page2')
-            #     if p1 and p2:
-            #         page=p1+p2
-            #     else:
-            #         page=None
-            # elif chamber=="senate":
-            #     params['district_map']='upper'
-            #     page=getFromCache(chamber+'_districts_page')
-            # if not page:
-            params['districts'],params['hpvi']=getAllDistrictsByID(params['district_map'])
-            self.districts_render(chamber, **params)
-            # else:
-            #     self.write(page)
+            page=get_contents_of_url(aws_output+'districts/'+chamber)
+            if page:
+                self.write(page)
+            else:
+                params['district_map']=get_chamber_name(chamber)
+                params['districts']=getAllDistrictsByID(params['district_map'])
+                self.render(all_districts_page, **params)
+
+    def post(self,chamber):
+        district_id=self.request.get("districts")
+        self.redirect('/districts/'+str(district_id))
+
+class AWSChamberDistrictsHandler(GenericHandler):
+    def get(self,chamber):
+        params=self.check_login('aws/districts/'+chamber)
+        k=getKeyFromAWS('output/districts/'+chamber)
+        if k==None:
+            self.write('Page not found, uploading...<br>')
+            params['district_map']=get_chamber_name(chamber)
+            params['districts']=getAllDistrictsByID(params['district_map'])
+            k = getAWSKey('output/districts/'+chamber)
+            k.set_contents_from_string(render_str(all_districts_page, **params))
+            k.set_acl('public-read')
+        self.write(k.get_contents_as_string())
 
 class DistrictHandler(GenericHandler):
     def get(self,district_id):
@@ -522,14 +632,80 @@ class DistrictHandler(GenericHandler):
         if 'loggedin_user' not in params:
             self.redirect('/signup')
         else:
-            # page=getFromCache('district '+district_id)
-            # if not page:
+            # page=get_contents_of_url(aws_output+'districts/'+district_id)
+            # if page:
+            #     self.write(page)
+            # else:
             data=getDistrictById(district_id)
             params['data']=data
             params['district_map']='True'
-            self.district_render(district_id, **params)
-            # else:
-            #     self.write(page)
+            self.render(district_page, **params)
+
+class AWSDistrictHandler(GenericHandler):
+    def get(self,district_id):
+        params=self.check_login('aws/districts/'+district_id)
+        k=getKeyFromAWS('output/districts/'+district_id)
+        if k==None:
+            self.write('Page not found, uploading...<br>')
+            data=getDistrictById(district_id)
+            params['data']=data
+            params['district_map']='True'
+            k = Key(b)
+            k.key = 'output/districts/'+district_id
+            k.set_contents_from_string(render_str(district_page, **params))
+            k.set_acl('public-read')
+        self.write(k.get_contents_as_string())
+
+class AWSGetSenateDistrictsHandler(GenericHandler):
+    def get(self):
+        params=self.check_login('aws/get_senate_districts')
+        c=connectToAWS()
+        if c:
+            self.write('Connected<br><br>')
+            b=c.get_bucket('mnleginfo')
+            r=range(67)
+            #self.write(r)
+            for n in r:
+                district_id='sldu/mn-'+str(n+1).zfill(2)
+                self.write(district_id)
+                k=b.get_key('output/districts/'+district_id)
+                if k:
+                    self.write(' Page found<br>')
+                else:
+                    self.write(' Page not found, trying to upload...')
+                    data=getDistrictById(district_id)
+                    params['data']=data
+                    params['district_map']='True'
+                    k = Key(b)
+                    k.key = 'output/districts/'+district_id
+                    k.set_contents_from_string(render_str(district_page, **params))
+                    k.set_acl('public-read')
+                    self.write('uploaded<br>')
+
+class AWSGetHouseDistrictsHandler(GenericHandler):
+    def get(self,l):
+        params=self.check_login('aws/get_house_districts/'+l)
+        c=connectToAWS()
+        if c:
+            self.write('Connected<br><br>')
+            b=c.get_bucket('mnleginfo')
+            r=range(67)
+            for n in r:
+                district_id='sldl/mn-'+str(n+1).zfill(2)+l
+                self.write(district_id)
+                k=b.get_key('output/districts/'+district_id)
+                if k:
+                    self.write(' Page found<br>')
+                else:
+                    self.write(' Page not found, trying to upload...')
+                    data=getDistrictById(district_id)
+                    params['data']=data
+                    params['district_map']='True'
+                    k = Key(b)
+                    k.key = 'output/districts/'+district_id
+                    k.set_contents_from_string(render_str(district_page, **params))
+                    k.set_acl('public-read')
+                    self.write('uploaded<br>')
 
 class SignupPage(GenericHandler):
     def get(self):
@@ -612,14 +788,14 @@ app = webapp2.WSGIApplication([
     ('/parse/committees/?', ParseCommitteesHandler),
     ('/parse/committees/(MNC[0-9]+|[0-9]+)/?', ParseCommitteeHandler),
     ('/parse/districts/?', ParseDistrictsHandler),
-    ('/parse/events/(house|senate)/?', ParseEventsHandler),
+    # ('/parse/events/(house|senate)/?', ParseEventsHandler),
     ('/parse/legislators/(MNL[0-9]+)/?', ParseAddLegislator),
     ('/legislators/?', LegislatureHandler),
     ('/legislators/(MNL[0-9]+)/?', LegislatorHandler),
     ('/committees/?', AllCommitteesHandler),
     ('/committees/(MNC[0-9]+|[0-9]+)/?', CommitteeHandler),
-    ('/events/?', AllEventsHandler),
-    ('/events/(MNE[0-9]+)/?', EventHandler),
+    # ('/events/?', AllEventsHandler),
+    # ('/events/(MNE[0-9]+)/?', EventHandler),
     ('/districts/?', AllDistrictsHandler),
     ('/districts/(house|senate)/?', ChamberDistrictsHandler),
     ('/districts/(sld[l|u]/mn-[0-9]+[a|b]?)/?', DistrictHandler),
@@ -628,4 +804,13 @@ app = webapp2.WSGIApplication([
     ('/login/?', LoginPage),
     ('/logout/?', LogoutPage),
     ('/clearcache/?', ClearCachePage),
-], debug=True)
+    ('/aws/?', AWSMainHandler),
+    ('/aws/bills/?', AWSSessionsHandler),
+    ('/aws/legislators/?', AWSLegislatureHandler),
+    ('/aws/committees/?', AWSAllCommitteesHandler),
+    ('/aws/districts/(sld[l|u]/mn-[0-9]+[a|b]?)/?', AWSDistrictHandler),
+    ('/aws/get_senate_districts/?', AWSGetSenateDistrictsHandler),
+    ('/aws/get_house_districts/([a|b])/?', AWSGetHouseDistrictsHandler),
+    ('/aws/districts/(house|senate)/?', AWSChamberDistrictsHandler),
+    ('/aws/districts/?', AWSAllDistrictsHandler),
+], debug=False)

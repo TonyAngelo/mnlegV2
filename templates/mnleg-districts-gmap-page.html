@@ -5,6 +5,9 @@
 <script type="text/javascript">
     
     $(function() {
+      $( ".selected-chambers" ).button({
+        icons: { primary: "ui-icon-triangle-1-e" }
+      });
       $( ".chambers" ).button();
     });
 
@@ -45,7 +48,7 @@
           	district.setMap(map);
             infowindow = new google.maps.InfoWindow();
             google.maps.event.addListener(district, 'click', function(evt) {
-              var contentString = ('<table><tr><td><img width="80px" src="https://s3.amazonaws.com/mnleginfo/leg/{{d["legislator"][0]["leg_id"]}}.jpg"></td><td><b>{% if d["chamber"]=="lower" %}<a href="/districts/{{d["boundary_id"]}}">House District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Representative {% else %}<a href="/districts/{{d["boundary_id"]}}">Senate District {{d["name"]}}</a></b><br> hPVI: {{hpvi[d["name"]]}}<br>Senator {% endif %}{{d["legislator"][0]["first_name"]}} {{d["legislator"][0]["last_name"]}}<br>{{d["legislator"][0]["party"]}}</td></tr></table>');
+              var contentString = ('<table><tr><td><img width="80px" src="https://s3.amazonaws.com/mnleginfo/leg/{{d["legislator"][0]["leg_id"]}}.jpg"></td><td>{% if d["chamber"]=="lower" %}<b><a href="/districts/{{d["dist_id"]}}">House District {{d["name"]}}</a></b><br> hPVI: {{d["hpvi"]}}<br>Representative {% else %}<a href="/districts/{{d["dist_id"]}}">Senate District {{d["name"]}}</a></b><br> hPVI: {{d["hpvi"]}}<br>Senator {% endif %}{{d["legislator"][0]["first_name"]}} {{d["legislator"][0]["last_name"]}}<br>{{d["legislator"][0]["party"]}}</td></tr></table>');
               infowindow.setContent(contentString);
               infowindow.setPosition(evt.latLng);
               infowindow.open(map);
@@ -70,14 +73,16 @@
         }
 
         #map_canvas {
-          height: 650px;
+          height: 550px;
         }
       }
     </style>
-
-<a class="chambers" href="/districts/senate">Senate</a>
-<a class="chambers" href="/districts/house">House</a>
-<h2 style="display:inline; margin-left:75px;">Minnesota {% if district_map=='upper' %}Senate{% else %}House{% endif %} Districts</h2>
+<ul id="breadcrumbs-one">
+    <li><a href="" class="current">Minnesota Legislative Districts</a></li>
+</ul><br>
+{% if district_map=='upper' %}<a class="selected-chambers" href="/districts/senate">Senate</a> <a class="chambers" href="/districts/house">House</a>{% else %}<a class="chambers" href="/districts/senate">Senate</a> <a class="selected-chambers" href="/districts/house">House</a>{% endif %}
+<h2 style="display:inline; margin:0px 75px 0px 75px;">Minnesota {% if district_map=='upper' %}Senate{% else %}House{% endif %} Districts</h2>
+<form style="display:inline-block;" method="post"><select name="districts">{% for d in districts %}<option value="{{d['dist_id']}}">{{d.name}}</option>{% endfor %}</select><input type="submit" value="Select"></form>
 <br><br>
-<div id="map_canvas" style="width:800px;height:500px;"></div>
+<div id="map_canvas" style="width:800px;height:550px;"></div>
 {% endblock %}

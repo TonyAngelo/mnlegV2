@@ -3,17 +3,20 @@
 {% block content %}
 <script type="text/javascript">
   $(function() {
+  	$( ".selected-chambers" ).button({
+        icons: { primary: "ui-icon-triangle-1-e" }
+      });
     $( ".chambers" ).button();
   });
 </script>
 
 <ul id="breadcrumbs-one">
     <li><a href='/bills'>bills</a></li>
-    <li><a href="" class="current">{{path}}</a></li>
+    <li><a href="" class="current">{{session}}</a></li>
 </ul>
 <br>
-<a class="chambers" href="/bills/{{path}}?q=senate">Senate</a>
-<a class="chambers" href="/bills/{{path}}?q=house">House</a>
+{% if chamber=="senate" %}<a class="selected-chambers" href="/bills/{{path}}?q=senate">Senate</a> <a class="chambers" href="/bills/{{path}}?q=house">House</a>{% else %}<a class="chambers" href="/bills/{{path}}?q=senate">Senate</a> <a class="selected-chambers" href="/bills/{{path}}?q=house">House</a>{% endif %}
+
 <div id='sort-methods'>
 	sort: <a href="/bills/{{path}}?s=asc{% if chamber_name %}&q={{chamber}}{% endif %}">asc</a> | <a href="/bills/{{path}}?s=dec{% if chamber_name %}&q={{chamber}}{% endif %}">dec</a>
 </div>

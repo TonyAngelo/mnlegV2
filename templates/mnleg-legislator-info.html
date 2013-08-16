@@ -7,6 +7,8 @@
     <li><a href="" class="current">{% if legislator.chamber=='upper' %}Senator{% else %}Representative{% endif %} {{legislator.full_name}}</a></li>
 </ul>
 <br>
+<div id="legislator-info-area">
+<div id='legislator-info-area-bio'>
 <table width="800px">
 	<tr><td>
 		{% if legislator.chamber=='lower' %}
@@ -15,6 +17,7 @@
 			<img src='http://d3tg302iyp0q7r.cloudfront.net/leg/{{legislator.leg_id}}.jpg'>
 		{% endif %}
 	</td><td>
+<h2>{% if legislator.chamber=='upper' %}Senator{% else %}Representative{% endif %} {{legislator.full_name}}</h2><br>
 <strong>{{legislator.party}}</strong><br><br>
 {% if legislator.district %}
 <strong>District:</strong> <a href="/districts/{{boundary_id}}">{{legislator.district}}</a><br><br>
@@ -36,8 +39,10 @@
 	{% endfor %}
 {% endif %}
 </td></tr></table>
+</div>
 <h3>Bills authored/co-authored</h3>
 	{% for b in bills %}
 	<div class="bill-summery-container"><div class="bill-summery-box"><a href="/bills/{{b.session}}/{{b.bill_id}}">{{b.bill_id[:2]}}<br><span style="font-weight:bold;">{{b.bill_id[3:]}}</span></a></div><div class="bill-summery-text">{{b.title}}</div></div>
 	{% endfor %}
+</div>
 {% endblock %}

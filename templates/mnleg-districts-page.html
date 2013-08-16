@@ -12,7 +12,6 @@
 	<h3>Complete Maps</h3>
 	<a href="/districts/senate">Complete Senate Map</a><br>
 	<a href="/districts/house">Complete House Map</a><br>
-	<em>these maps can take a minute to load</em>
 </div>
 <div class='districts-page-selection-container-element'>
 	<h3>Select a Senate District</h3><div class='districts-page-selection-container-selector'><form method="post"><select name="districts">{% for d in districts %}{% if d.chamber=='upper' %}<option value="{{d.boundary_id}}">{{d.name}}</option>{% endif%}{% endfor %}</select>

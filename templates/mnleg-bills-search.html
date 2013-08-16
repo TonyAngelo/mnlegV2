@@ -5,8 +5,8 @@
 	$(function() {
     var currentLegs = [
         {% if search_page %}{% for l in legislators %}
-        {label:'{{l.first_name}} {{l.last_name}}',
-        value:'{{l.leg_id}}',},
+        {label:'{{l.name}}',
+        value:'{{l.name}}',},
         {% endfor %}{% endif %} 
       ];
       $( "#legs" ).autocomplete({
@@ -27,6 +27,7 @@
 <ul id="breadcrumbs-one">
     <li><a href="" class="current">Minnesota Legislature Bills</a></li>
 </ul>
+<div id="bill-search-area">
 <table><tr><td width="400" valign="top">
 <h2>Bill Search</h2>
 <br>
@@ -58,13 +59,20 @@ or search by legislator<br><br>
 <br>
 </td><td width="400" valign="top">
 <h2>Bulk Session Search</h2>
-<br>search all bills for a session
+<br>search all bills from a primary session
 <br><br>
-<ul id="sessions-list">
+<ul id="sessions-list-primary">
 	{% for s in sessions %}
-	    <li><a href="/bills/{{s}}">{{details[s]['display_name']}}</a></li>
+		<li>{% if details[s]['type']=="primary" %}<a href="/bills/{{s}}">{{details[s]['display_name']}}</a>{% endif%}</li>
+	{% endfor %}
+</ul>
+<br>search all bills from a special session
+<br><br>
+<ul id="sessions-list-special">
+	{% for s in sessions %}
+	    <li>{% if details[s]['type']=="special" %}<a href="/bills/{{s}}">{{details[s]['display_name']}}</a>{% endif%}</li>
 	{% endfor %}
 </ul>
 </td></tr></table>
-
+</div>
 {% endblock %}

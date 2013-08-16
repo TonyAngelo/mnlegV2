@@ -8,7 +8,7 @@
       });
     $( ".chamber" ).button();
     var currentLegs = [
-      {% if search_page %}{% for l in legislators %}{label:'{{l.full_name}}', value:'{{l.leg_id}}',},{% endfor %}{% endif %} 
+      {% if search_page %}{% for l in legislators %}{label:'{{l.name}}', value:'{{l.name}}',},{% endfor %}{% endif %} 
     ];
     $( "#legs" ).autocomplete({
         source: currentLegs
@@ -19,15 +19,14 @@
     <li><a href="" class="current">Minnesota Legislators</a></li>
 </ul>
 <br>{% if chamber=="upper" %}<a class="selected-chamber" href="/legislators?q=senate">Senate</a> <a class="chamber" href="/legislators?q=house">House</a>{% else %}<a class="chamber" href="/legislators?q=senate">Senate</a> <a class="selected-chamber" href="/legislators?q=house">House</a>{% endif %}
-
+<h2 style="display:inline; margin:0px 0px 0px 75px;">Minnesota {% if chamber=='upper' %}Senators{% else %}Representatives{% endif %}</h2>
 <div style="display:inline; float:right;">
-<form method="post">
-	search for a legislator 
+<form method="post" name='legislator'>
 	<input placeholder="(autocomplete field)" id="legs" name='leg' />
 	<input type="submit" name='submit' value="Search">
 </form>
 </div>
-
+<div id="current-legislators-area">
 <table><tr><td width="400px" valign="top">
   <h3>{{chamber_name}} Democrats</h3>
   <section id="photos">
@@ -39,5 +38,5 @@
 	 {% for l in legislators %}{% if l.chamber==chamber and l.party[0]=='R' and l.photo_url %}<a href='/legislators/{{l.leg_id}}'><img width='50px' title="{{l.full_name}}" alt="{{l.full_name}}" src="https://s3.amazonaws.com/mnleginfo/leg/{{l.leg_id}}.jpg"></a>{% endif %}{% endfor %}
   </section>
 </td></tr></table>
-
+</div>
 {% endblock %}

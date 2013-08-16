@@ -164,10 +164,10 @@ def getBillText(url):
     
     bill_text = soup.find_all('div','xtend')
 
-    for e in bill_text[0]('a'):
-        bill_text[0].a.insert_before(br)
-        first_link = bill_text[0].a
-        first_link.find_next("a")
+    # for e in bill_text[0]('a'):
+    #     bill_text[0].a.insert_before(br)
+    #     first_link = bill_text[0].a
+    #     first_link.find_next("a")
 
     return bill_text[0]
 
@@ -274,7 +274,6 @@ def getSenateCommitteeMembers(url):
         return title, results, meetings
 
 def getCommitteeDictByID(com_id):
-	# data=getMNLegCommitteeById(com_id)
 	com=Committee.get_by_id(com_id)
 	for c in com:
 		if c.chamber=='lower':
@@ -282,12 +281,6 @@ def getCommitteeDictByID(com_id):
 		elif c.chamber=='upper':
 			meetings=getSenateCommitteeMeetingsByID(getCommitteeIDFromURL(c.com_url[0]['url']))
 		return makeCommitteeDict(c.name,c.members,meetings,c.chamber)
-
-	# if data['chamber']=='lower':
-	# 	meetings=getHouseCommitteeMeetings(data['sources'][0]['url'])
-	# elif data['chamber']=='upper':
-	# 	meetings=getSenateCommitteeMeetingsByID(getCommitteeIDFromURL(data['sources'][0]['url']))
-	# return makeCommitteeDict(data['committee'],data['members'],meetings,data['chamber'])
 
 def getHouseMeetingByID(com_id):
 	data=getMNLegCommitteeById(com_id)
@@ -514,33 +507,21 @@ def getAllHouseCommitteeMeetingsAsEvents():
 def getCurrentBills(n=10): # front page recent bills
 	data = getMNLegBillsCurrent(n)
 	return data
-	# if data:
-	# 	putInCache('Current Bills',data)
 
 def getBillsbyKeyword(keyword,sort=True): # bills search page 
-	# params={'keyword':keyword}
-	# data=cacheDance('query='+keyword,getMNLegBillsbyKeyword, time_hour_24, **params)
 	data=getMNLegBillsbyKeyword(keyword)
 	return sortBillsByDate(data,sort)
 
 def getBillsbyAuthor(author,session='session',sort=True): # bills search page
-	# params={'author':author,
-	# 		'session':session}
-	#data=cacheDance('bills='+author+'_'+session,getMNLegBillsbyAuthor, time_hour_24, **params)
 	data=getMNLegBillsbyAuthor(author,session)
 	return sortBillsByDate(data,sort)
 
 def getBillById(bill,session): # bills search page
-	# params={'bill':bill,
-	# 		'session':session}
-	# data=cacheDance(session+bill,getMNLegBillInfobyId, time_hour_24, **params)
 	data=getMNLegBillInfobyId(bill,session)
 	return data
 
 def getBillNames(session,sort=True): # bills by session
-	params={'session':session}
-	# if not current session leave in cache forever
-	#data=cacheDance(session,getMNLegBillsbySession, time_hour_24, **params)
+	#params={'session':session}
 	data=getMNLegBillsbySession(session)
 	bills=[]
 	for d in data:
@@ -550,7 +531,6 @@ def getBillNames(session,sort=True): # bills by session
 	return b
 
 def getSessionNames(): # session names for bills search page
-	#data=cacheDance("sessions",getMNLegMetaData, None)
 	data=getMNLegMetaData()
 	if data:
 		session_details=data["session_details"]
@@ -562,73 +542,36 @@ def getSessionNames(): # session names for bills search page
 	else:
 		return None
 
+def getSessionDisplayFromName(session_name):
+	data=getMNLegMetaData()
+	if data:
+		session_details=data["session_details"]
+		for s in session_details:
+			if s==session_name:
+				return session_details[s]['display_name']
+	return None
+
 def getAllDistricts(): # districts front
-	# data=getFromCache('districts')
-	# if not data:
 	data = getMNLegAllDistricts()
 	if data:
 		data=sorted(data)
-		#putInCache('districts',data)
 	else:
 		return None
 	return data
 
 def getDistrictById(district_id): # individual district
-	# data=getFromCache(district_id)
-	# if not data:
-	data=getMNLegDistrictById(district_id)
-	if data: 
-		if 'shape' in data:
-			new_shape=[]
-			data['district_map']='True'
-	 		for p in data['shape'][0][0]:
-	 			new_shape.append([p[1],p[0]])
-	 		data['shape'][0][0]=new_shape
-
- 		legislator=getLegislatorByDistrict(data['name'])
- 		if legislator!=None:
-	 		data['legislator']=legislator
-
-	 	demo,url=fetchDistrictDemoData(data['boundary_id'])
-	 	if demo!=None:
-	 		data['district_demo']=demo
-	 		data['district_demo_url']=url
-
-	 	election=get2012ElectionResultsbyDistrict(data['name'],data['chamber'])
-	 	if election!=None:
-	 		data['leg_results']=election
-
-	 	hpvi=getHPVIbyChamber(data['chamber'])
-	 	if hpvi!=None:
-	 		data['hpvi']=hpvi
-
- 		#putInCache(district_id,data)
-	# else:
-	# 	return None
-	return data
+	dist=District.get_by_id(district_id)
+	if dist:
+		for d in dist:
+			return d
 
 def getAllDistrictsByID(chamber): # for full senate/house map pages
-	# all_data=[]
-	# if chamber=='lower':
-	# 	data1=getFromCache(chamber+'_districts1')
-	# 	data2=getFromCache(chamber+'_districts2')
-	# 	if data1 and data2:
-	# 		all_data=data1+data2
-	# else:
-	# 	all_data=getFromCache(chamber+'_districts')
-	# if not all_data:
-	data=getAllDistricts()
-	all_data=[]
-	for d in data:
-		if d['chamber']==chamber:
-			all_data.append(getDistrictById(d['boundary_id']))
-	# if chamber=='lower':
-	# 	putInCache(chamber+'_districts1',all_data[:len(all_data)/2])
-	# 	putInCache(chamber+'_districts2',all_data[len(all_data)/2:])
-	# else:
-	# 	putInCache(chamber+'_districts',all_data)
-	hpvi=getHPVIbyChamber(chamber)
-	return all_data,hpvi
+	data=[]
+	dist=District.get_by_chamber(chamber)
+	if dist:
+		for d in dist:
+			data.append(d)
+		return data
 
 def cronEvents(which):
 	events=[]
@@ -638,15 +581,6 @@ def cronEvents(which):
 
 def getAllEvents(which='all'): # events calendar page
 	events=[]
-	# if which=='senate':
-	# 	events=getFromCache('senate_committee_meetings')
-	# elif which=='house':
-	# 	events=getFromCache('house_committee_meetings')
-	# elif which=='other':
-	# 	events=getAllOtherEventsAsEvents()
-	# elif which=='all':
-		# house=getFromCache('house_committee_meetings')
-		# senate=getFromCache('senate_committee_meetings')
 	leg=Event.Query.all()
 	for l in leg:
 		events.append(l)
@@ -654,48 +588,44 @@ def getAllEvents(which='all'): # events calendar page
 	return events+other
 
 def getEventById(event_id): # event page
-	#params={'event_id':event_id}
-	#data=cacheDance(event_id,getMNLegEventById, time_hour_24, **params)
 	data=getMNLegEventById(event_id)
 	return data
 
 def getAllCommittees(): # committees front page
-	# data=getFromCache('committees')
-	# if not data:
-		# house=getMNLegAllCommittees()
-		# senate=getSenateCommittees()
-		# if house and senate:
-		# 	data=senate+house
-	data=getMNLegAllCommittees()
-	return sorted(data)
+	data=[]
+	com=Committee.Query.all().order_by("name")
+	for c in com:
+		data.append(c)
+	return data
 
 def getCommitteesByChamber(chamber='upper'):
 	data=[]
 	com=Committee.Query.all().eq(chamber=chamber).order_by("name")
 	for c in com:
 		data.append(c)
-	#return sorted(data, key=lambda data: data.name,reverse=False)
 	return data
 
 def getCommitteeById(com_id): # committee page
 	data=getCommitteeDictByID(com_id)
 	return data
 
-def getCurrentLegislators(chamber='upper'): # legislators page
-	#data=cacheDance('legislators',getMNLegislatorByActive, None)
-	# data=getMNLegislatorByActive()
-	# return data
+def getAllLegislators():
 	data=[]
-	leg=Legislator.Query.all().eq(chamber=chamber)#.order_by("district")
+	leg=Legislator.Query.all().limit(300)
 	for l in leg:
 		if l.active:
 			data.append(l)
 	return sorted(data, key=lambda data: data.district,reverse=False)
-	#return data
+
+def getLegislatorsByChamber(chamber='upper'): # legislators page
+	data=[]
+	leg=Legislator.Query.all().eq(chamber=chamber).limit(200)
+	for l in leg:
+		if l.active:
+			data.append(l)
+	return sorted(data, key=lambda data: data.district,reverse=False)
 
 def getLegislatorByID(leg_id): # individual legislator page
-	# data=getMNLegislatorById(leg_id)
-	# return data
 	leg=Legislator.Query.all().eq(leg_id=leg_id)
 	for l in leg:
 		return l

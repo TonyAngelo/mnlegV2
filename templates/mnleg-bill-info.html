@@ -7,6 +7,7 @@
         heightStyle: "content",
         collapsible: true
       });
+      $( ".view_text" ).button();
     });
 </script>
 <ul id="breadcrumbs-one">
@@ -18,8 +19,6 @@
 <h2>{{bill_info.bill_id}} - {{bill_info.title}}</h2>
 <br>
 <table><tr><td valign='top' width="375px">
-<a href="{{bill_info.versions[-1].url}}" target="_blank">Link to current bill text</a>
-<br><br>
 <strong>Updated:</strong> {{bill_info.updated_at[:10]}}<br>
 
 {% if bill_info.action_dates['passed_lower'] %}
@@ -47,22 +46,30 @@
 {% endfor %}
 </dl>
 <dl>
-<h4>Votes</h4>
-<div id="accordion">
-{% for v in bill_info.votes %}
-<h3>{{v.motion}}</h3>
-<div>{{v.date[:10]}}
-<table><tr><td>Yes: {{v.yes_count}}</td><td>No: {{v.no_count}}</td></tr><tr><td valign="top">
-{% for y in v.yes_votes %}{{y.name}}<br>{% endfor %}</td><td valign="top">
-{% for n in v.no_votes %}{{n.name}}<br>{% endfor %}</td></tr></table>
-</div>
-{% endfor %}
-</div>
-
-</td><td valign='top' width="25px"></td><td valign='top' width="400px">
-{% autoescape false %}
-	{{bill_text}}
-{% endautoescape %}
+  {% if bill_info.votes|count() > 0 %}
+    <h4>Votes</h4>
+    <div id="accordion">
+    {% for v in bill_info.votes %}
+    <h3>{{v.motion}}</h3>
+    <div>{{v.date[:10]}}
+    <table><tr><td>Yes: {{v.yes_count}}</td><td>No: {{v.no_count}}</td></tr><tr><td valign="top">
+    {% for y in v.yes_votes %}{{y.name}}<br>{% endfor %}</td><td valign="top">
+    {% for n in v.no_votes %}{{n.name}}<br>{% endfor %}</td></tr></table>
+    </div>
+    {% endfor %}
+    </div>
+  {% endif %}
+</td>
+<td valign='top' width="25px"></td><td valign='top' width="400px">
+<a href="{{bill_info.versions[-1].url}}" target="_blank">Link to current bill text</a>
+<br><br>
+{% if bill_info.text_view=='y' %}
+  {% autoescape false %}
+  	{{bill_text}}
+  {% endautoescape %}
+{% else %}
+  <a class="view_text" href="/bills/{{bill_info.session}}/{{bill_info.bill_id}}?t=y">View Bill Text</a>
+{% endif %}
 </td></tr></table>
 
 {% if bill_info.sources %}
